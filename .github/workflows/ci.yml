@@ -66,6 +66,9 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - name: Check formatting (Prettier)
+        run: npm run lint
+
       - name: Build frontend
         run: npm run build
 

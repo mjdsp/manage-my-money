@@ -2,37 +2,66 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import { Toaster } from '@/Components/ui/sonner';
 import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, ReactNode, useState } from 'react';
+import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+const NAV: { label: string; route: string; pattern: string }[] = [
+    { label: 'Dashboard', route: 'dashboard', pattern: 'dashboard' },
+    {
+        label: 'Transactions',
+        route: 'transactions.index',
+        pattern: 'transactions.*',
+    },
+    {
+        label: 'Scheduled',
+        route: 'scheduled-transactions.index',
+        pattern: 'scheduled-transactions.*',
+    },
+    { label: 'Accounts', route: 'accounts.index', pattern: 'accounts.*' },
+    { label: 'Categories', route: 'categories.index', pattern: 'categories.*' },
+    { label: 'Reports', route: 'reports.monthly', pattern: 'reports.*' },
+];
 
 export default function Authenticated({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
     const user = usePage().props.auth.user;
+    const flash = usePage().props.flash;
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
+    useEffect(() => {
+        if (flash?.status) {
+            toast.success(flash.status);
+        }
+    }, [flash?.status]);
+
     return (
         <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+            <nav className="border-b border-gray-200 bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
-                                <Link href="/">
+                                <Link href={route('dashboard')}>
                                     <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
                                 </Link>
                             </div>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
+                            <div className="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
+                                {NAV.map((item) => (
+                                    <NavLink
+                                        key={item.route}
+                                        href={route(item.route)}
+                                        active={route().current(item.pattern)}
+                                    >
+                                        {item.label}
+                                    </NavLink>
+                                ))}
                             </div>
                         </div>
 
@@ -43,12 +72,12 @@ export default function Authenticated({
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm leading-4 font-medium text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                                             >
                                                 {user.name}
 
                                                 <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
+                                                    className="ms-2 -me-0.5 h-4 w-4"
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     viewBox="0 0 20 20"
                                                     fill="currentColor"
@@ -130,16 +159,19 @@ export default function Authenticated({
                         ' sm:hidden'
                     }
                 >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
+                    <div className="space-y-1 pt-2 pb-3">
+                        {NAV.map((item) => (
+                            <ResponsiveNavLink
+                                key={item.route}
+                                href={route(item.route)}
+                                active={route().current(item.pattern)}
+                            >
+                                {item.label}
+                            </ResponsiveNavLink>
+                        ))}
                     </div>
 
-                    <div className="border-t border-gray-200 pb-1 pt-4">
+                    <div className="border-t border-gray-200 pt-4 pb-1">
                         <div className="px-4">
                             <div className="text-base font-medium text-gray-800">
                                 {user.name}
@@ -166,14 +198,18 @@ export default function Authenticated({
             </nav>
 
             {header && (
-                <header className="bg-white shadow">
+                <header className="bg-white shadow-sm">
                     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {header}
                     </div>
                 </header>
             )}
 
-            <main>{children}</main>
+            <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                {children}
+            </main>
+
+            <Toaster richColors position="top-center" />
         </div>
     );
 }
