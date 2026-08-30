@@ -5,7 +5,9 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\LedgerService;
+use App\Services\ReportService;
 use App\Support\Money;
+use Illuminate\Support\Carbon;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -55,4 +57,20 @@ it('downloads the report as a PDF', function () {
 
     $response->assertOk();
     expect($response->headers->get('content-type'))->toContain('application/pdf');
+});
+
+it('does not count opening balances as money saved', function () {
+    $savings = Account::factory()->for($this->user)->savings()->create();
+    $this->ledger->recordOpeningBalance($savings, Money::ofPesos('50000'), '2026-08-01');
+    $this->ledger->post($this->user, [
+        'type' => TransactionType::Transfer, 'amount' => Money::ofPesos('4000'),
+        'date' => '2026-08-15', 'from_account_id' => $this->bank->id, 'to_account_id' => $savings->id,
+    ]);
+
+    $report = app(ReportService::class)
+        ->monthly($this->user, Carbon::parse('2026-08-01'));
+
+    expect($report['summary']['saved']->cents)->toBe(400_000)
+        ->and(collect($report['transactionsByCategory'])->pluck('name'))
+        ->not->toContain('Adjustment');
 });

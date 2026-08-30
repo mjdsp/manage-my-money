@@ -161,8 +161,9 @@ class ReportService
     }
 
     /**
-     * Net movement into a set of accounts over a date range (in minus out),
-     * counting transfers and adjustments but not opening balances dated earlier.
+     * Net movement into a set of accounts over a date range (in minus out).
+     * Adjustments (opening balances, corrections) are setup, not activity, so
+     * they are excluded — this is "how much did you actually put in".
      *
      * @param  list<int>  $accountIds
      */
@@ -172,15 +173,12 @@ class ReportService
             return Money::zero();
         }
 
-        $in = (int) $user->transactions()
-            ->whereIn('to_account_id', $accountIds)
-            ->whereBetween('date', [$start, $end])
-            ->sum('amount');
+        $base = $user->transactions()
+            ->where('type', '!=', TransactionType::Adjustment->value)
+            ->whereBetween('date', [$start, $end]);
 
-        $out = (int) $user->transactions()
-            ->whereIn('from_account_id', $accountIds)
-            ->whereBetween('date', [$start, $end])
-            ->sum('amount');
+        $in = (int) (clone $base)->whereIn('to_account_id', $accountIds)->sum('amount');
+        $out = (int) (clone $base)->whereIn('from_account_id', $accountIds)->sum('amount');
 
         return Money::ofCents($in - $out);
     }
@@ -228,6 +226,7 @@ class ReportService
     {
         return $user->transactions()
             ->with(['category:id,name', 'fromAccount:id,name', 'toAccount:id,name'])
+            ->where('type', '!=', TransactionType::Adjustment->value)
             ->whereBetween('date', [$start, $end])
             ->orderBy('date')
             ->orderBy('id')
