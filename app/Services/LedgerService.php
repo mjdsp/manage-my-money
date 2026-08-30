@@ -39,6 +39,31 @@ class LedgerService
      */
     public function post(User $user, array $data): Transaction
     {
+        return $user->transactions()->create([
+            ...$this->validatedAttributes($user, $data),
+            'scheduled_transaction_id' => $data['scheduled_transaction_id'] ?? null,
+        ]);
+    }
+
+    /**
+     * Re-validate and overwrite an existing transaction in place, keeping its id
+     * (and any link back to the scheduled transaction that posted it).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function rewrite(Transaction $transaction, array $data): Transaction
+    {
+        $transaction->update($this->validatedAttributes($transaction->user, $data));
+
+        return $transaction;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function validatedAttributes(User $user, array $data): array
+    {
         $type = $data['type'];
         $amount = $data['amount'] instanceof Money ? $data['amount'] : Money::ofCents($data['amount']);
 
@@ -52,7 +77,7 @@ class LedgerService
 
         $this->assertShape($type, $from, $to, $category);
 
-        return $user->transactions()->create([
+        return [
             'type' => $type,
             'amount' => $amount,
             'date' => Carbon::parse($data['date'])->toDateString(),
@@ -60,8 +85,7 @@ class LedgerService
             'category_id' => $category?->id,
             'from_account_id' => $from?->id,
             'to_account_id' => $to?->id,
-            'scheduled_transaction_id' => $data['scheduled_transaction_id'] ?? null,
-        ]);
+        ];
     }
 
     /**
@@ -86,15 +110,24 @@ class LedgerService
     }
 
     /**
-     * Cash on hand for an asset; amount still owed for a liability.
+     * Cash on hand for an asset; amount still owed for a liability. Pass $asOf
+     * to get the balance as it stood at the end of that day.
      */
-    public function balance(Account $account): Money
+    public function balance(Account $account, \DateTimeInterface|string|null $asOf = null): Money
     {
-        $in = (int) Transaction::query()->where('to_account_id', $account->id)->sum('amount');
-        $out = (int) Transaction::query()->where('from_account_id', $account->id)->sum('amount');
+        $in = $this->sideSum($account->id, 'to_account_id', $asOf);
+        $out = $this->sideSum($account->id, 'from_account_id', $asOf);
         $movement = $in - $out;
 
         return Money::ofCents($account->isLiability() ? -$movement : $movement);
+    }
+
+    private function sideSum(int $accountId, string $column, \DateTimeInterface|string|null $asOf): int
+    {
+        return (int) Transaction::query()
+            ->where($column, $accountId)
+            ->when($asOf, fn ($q) => $q->whereDate('date', '<=', $asOf))
+            ->sum('amount');
     }
 
     private function resolveAccount(User $user, ?int $id): ?Account
