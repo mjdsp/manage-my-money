@@ -1,4 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
+import PieChart from '@/Components/PieChart';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
@@ -58,6 +59,30 @@ type Report = {
         }[];
     }[];
 };
+
+function CategoryBreakdown({
+    rows,
+    unit,
+}: {
+    rows: CategoryRow[];
+    unit: string;
+}) {
+    if (rows.length === 0) {
+        return <p className="text-sm text-gray-500">Nothing recorded.</p>;
+    }
+    return (
+        <div className="space-y-4">
+            <PieChart
+                data={rows.map((r) => ({
+                    name: r.name,
+                    value: r.amount.cents,
+                }))}
+                formatValue={(cents) => peso(cents)}
+            />
+            <CategoryTable rows={rows} unit={unit} />
+        </div>
+    );
+}
 
 function CategoryTable({ rows, unit }: { rows: CategoryRow[]; unit: string }) {
     if (rows.length === 0) {
@@ -177,7 +202,7 @@ export default function MonthlyReport({
                             <CardTitle>Spending by category</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <CategoryTable
+                            <CategoryBreakdown
                                 rows={report.spendingByCategory}
                                 unit="expenses"
                             />
@@ -188,7 +213,7 @@ export default function MonthlyReport({
                             <CardTitle>Income by category</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <CategoryTable
+                            <CategoryBreakdown
                                 rows={report.incomeByCategory}
                                 unit="income"
                             />

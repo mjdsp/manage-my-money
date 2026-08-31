@@ -54,4 +54,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(ScheduledTransaction::class);
     }
+
+    /** @return HasMany<Reimbursement, $this> */
+    public function reimbursements(): HasMany
+    {
+        return $this->hasMany(Reimbursement::class);
+    }
 }

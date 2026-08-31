@@ -1,4 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
+import PieChart from '@/Components/PieChart';
 import { Badge } from '@/Components/ui/badge';
 import {
     Card,
@@ -16,7 +17,12 @@ type IE = { income: Money; expense: Money; net: Money };
 
 type DashboardData = {
     month: string;
-    netPosition: { assets: Money; liabilities: Money; net: Money };
+    netPosition: {
+        assets: Money;
+        receivables: Money;
+        liabilities: Money;
+        net: Money;
+    };
     thisMonth: IE;
     lastMonth: IE;
     spendingByCategory: { name: string; amount: Money; pct: number }[];
@@ -31,7 +37,7 @@ type DashboardData = {
     accounts: {
         id: number;
         name: string;
-        kind: 'asset' | 'liability';
+        kind: 'asset' | 'liability' | 'receivable';
         balance: Money;
         payoff: {
             original: Money;
@@ -135,17 +141,20 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             <div className="mt-6 grid gap-6 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Spending by category</CardTitle>
+                        <CardTitle>Expenses by category</CardTitle>
                         <CardDescription>
                             {monthLabel(data.month)}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                        {data.spendingByCategory.length === 0 && (
-                            <p className="text-sm text-gray-500">
-                                No expenses recorded yet.
-                            </p>
-                        )}
+                    <CardContent className="space-y-4">
+                        <PieChart
+                            data={data.spendingByCategory.map((row) => ({
+                                name: row.name,
+                                value: row.amount.cents,
+                            }))}
+                            formatValue={(cents) => peso(cents)}
+                            emptyLabel="No expenses recorded yet."
+                        />
                         {data.spendingByCategory.map((row) => (
                             <div key={row.name}>
                                 <div className="flex justify-between text-sm">
@@ -253,8 +262,13 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     </Badge>
                                 </span>
                                 <span className="tabular-nums">
-                                    {peso(a.balance)}
-                                    {a.payoff && ' owed'}
+                                    {a.payoff
+                                        ? peso(a.payoff.owed)
+                                        : peso(a.balance)}
+                                    {a.payoff &&
+                                        (a.kind === 'receivable'
+                                            ? ' to collect'
+                                            : ' left to pay')}
                                 </span>
                             </div>
                             {a.payoff && a.payoff.original.cents > 0 && (
@@ -269,8 +283,11 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     </div>
                                     <div className="mt-0.5 text-xs text-gray-500">
                                         {peso(a.payoff.paid)} of{' '}
-                                        {peso(a.payoff.original)} paid (
-                                        {a.payoff.pct}%)
+                                        {peso(a.payoff.original)}{' '}
+                                        {a.kind === 'receivable'
+                                            ? 'collected'
+                                            : 'paid'}{' '}
+                                        ({a.payoff.pct}%)
                                     </div>
                                 </div>
                             )}

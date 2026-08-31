@@ -13,5 +13,6 @@ export type PageProps<
     };
     flash: {
         status: string | null;
+        error: string | null;
     };
 };

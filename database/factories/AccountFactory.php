@@ -45,10 +45,24 @@ class AccountFactory extends Factory
             'kind' => AccountKind::Liability,
             'name' => 'Loan',
             'lender' => fake()->company(),
-            'apr' => fake()->randomFloat(3, 5, 36),
+            'monthly_interest_rate' => fake()->randomFloat(3, 1, 6),
             'due_day_of_month' => fake()->numberBetween(1, 28),
+            'term_months' => fake()->numberBetween(6, 36),
             'scheduled_payment_amount' => fake()->numberBetween(50000, 500000),
+            'total_repayment' => fake()->numberBetween(1200000, 24000000),
             'starting_principal' => fake()->numberBetween(1000000, 20000000),
+        ]);
+    }
+
+    public function receivable(): static
+    {
+        return $this->state([
+            'kind' => AccountKind::Receivable,
+            'name' => 'Family loan',
+            'lender' => fake()->name(),
+            'due_day_of_month' => fake()->numberBetween(1, 28),
+            'term_months' => fake()->numberBetween(6, 36),
+            'starting_principal' => fake()->numberBetween(2000000, 30000000),
         ]);
     }
 

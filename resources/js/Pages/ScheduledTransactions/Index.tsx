@@ -28,7 +28,7 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatDate, peso, titleCase } from '@/lib/format';
+import { formatDate, peso, titleCase, todayISO } from '@/lib/format';
 import type {
     Category,
     ScheduledTransaction,
@@ -51,6 +51,7 @@ type FormShape = {
     from_account_id: string;
     to_account_id: string;
     is_active: boolean;
+    auto_post: boolean;
 };
 
 function Field({
@@ -84,7 +85,7 @@ function ScheduleDialog({
 }) {
     const [open, setOpen] = useState(false);
     const editing = Boolean(item);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISO();
 
     const form = useForm<FormShape>({
         description: item?.description ?? '',
@@ -100,6 +101,7 @@ function ScheduleDialog({
             : NONE,
         to_account_id: item?.to_account_id ? String(item.to_account_id) : NONE,
         is_active: item?.is_active ?? true,
+        auto_post: item?.auto_post ?? false,
     });
 
     const { type } = form.data;
@@ -107,19 +109,56 @@ function ScheduleDialog({
     const showTo = type === 'income' || type === 'transfer';
     const showCategory = type === 'income' || type === 'expense';
 
+    // Changing the type changes which of category / from / to even apply, so
+    // clear the ones that are about to disappear. Otherwise a stale value from
+    // the previous type is submitted, fails validation on a field that is no
+    // longer on screen, and the form just silently refuses to save.
+    function changeType(next: FormShape['type']) {
+        form.setData((data) => ({
+            ...data,
+            type: next,
+            category_id: NONE,
+            from_account_id: NONE,
+            to_account_id: NONE,
+        }));
+        form.clearErrors(
+            'category_id',
+            'from_account_id',
+            'to_account_id',
+            'type',
+        );
+    }
+
+    function handleOpenChange(next: boolean) {
+        setOpen(next);
+        if (!next) {
+            form.clearErrors();
+            if (!editing) form.reset();
+        }
+    }
+
     function submit(e: FormEvent) {
         e.preventDefault();
+        // Only ever send the fields that apply to the chosen type.
         form.transform((data) => ({
             ...data,
-            category_id: data.category_id === NONE ? '' : data.category_id,
+            category_id:
+                showCategory && data.category_id !== NONE
+                    ? data.category_id
+                    : '',
             from_account_id:
-                data.from_account_id === NONE ? '' : data.from_account_id,
+                showFrom && data.from_account_id !== NONE
+                    ? data.from_account_id
+                    : '',
             to_account_id:
-                data.to_account_id === NONE ? '' : data.to_account_id,
+                showTo && data.to_account_id !== NONE ? data.to_account_id : '',
         }));
         const opts = {
             preserveScroll: true,
-            onSuccess: () => setOpen(false),
+            onSuccess: () => {
+                setOpen(false);
+                if (!editing) form.reset();
+            },
         };
         if (editing) {
             form.put(route('scheduled-transactions.update', item!.id), opts);
@@ -129,7 +168,7 @@ function ScheduleDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
@@ -155,7 +194,7 @@ function ScheduleDialog({
                             <Select
                                 value={type}
                                 onValueChange={(v) =>
-                                    form.setData('type', v as FormShape['type'])
+                                    changeType(v as FormShape['type'])
                                 }
                             >
                                 <SelectTrigger>
@@ -321,16 +360,35 @@ function ScheduleDialog({
                         )}
                     </div>
 
-                    <label className="flex items-center gap-2 text-sm">
-                        <input
-                            type="checkbox"
-                            checked={form.data.is_active}
-                            onChange={(e) =>
-                                form.setData('is_active', e.target.checked)
-                            }
-                        />
-                        Active
-                    </label>
+                    <div className="space-y-2">
+                        <label className="flex items-center gap-2 text-sm">
+                            <input
+                                type="checkbox"
+                                checked={form.data.is_active}
+                                onChange={(e) =>
+                                    form.setData('is_active', e.target.checked)
+                                }
+                            />
+                            Active
+                        </label>
+                        <label className="flex items-center gap-2 text-sm">
+                            <input
+                                type="checkbox"
+                                checked={form.data.auto_post}
+                                onChange={(e) =>
+                                    form.setData('auto_post', e.target.checked)
+                                }
+                            />
+                            Auto-post when due
+                        </label>
+                        {form.data.auto_post && (
+                            <p className="text-xs text-gray-500">
+                                Posts itself to the ledger on its due date
+                                (catching up any missed months) and rolls
+                                forward — no need to press Post.
+                            </p>
+                        )}
+                    </div>
 
                     <DialogFooter>
                         <Button type="submit" disabled={form.processing}>
@@ -353,7 +411,7 @@ export default function ScheduledIndex({
     categories: Category[];
 }) {
     const action = useForm();
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISO();
 
     return (
         <AuthenticatedLayout>
@@ -413,6 +471,14 @@ export default function ScheduledIndex({
                                                 {s.category
                                                     ? ` · ${s.category.name}`
                                                     : ''}
+                                                {s.auto_post && (
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="ml-2 text-[10px]"
+                                                    >
+                                                        auto-post
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-sm whitespace-nowrap">

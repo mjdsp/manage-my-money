@@ -34,7 +34,20 @@ class TransactionController extends Controller
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->paginate(50)
-            ->withQueryString();
+            ->withQueryString()
+            ->through(fn (Transaction $t) => [
+                'id' => $t->id,
+                'date' => $t->date->toDateString(),
+                'amount' => $t->amount,
+                'type' => $t->type,
+                'description' => $t->description,
+                'category_id' => $t->category_id,
+                'from_account_id' => $t->from_account_id,
+                'to_account_id' => $t->to_account_id,
+                'category' => $t->category?->only(['id', 'name', 'kind']),
+                'from_account' => $t->fromAccount?->only(['id', 'name']),
+                'to_account' => $t->toAccount?->only(['id', 'name']),
+            ]);
 
         return Inertia::render('Transactions/Index', [
             'transactions' => $transactions,
@@ -77,8 +90,11 @@ class TransactionController extends Controller
     private function resolveMonth(?string $value): Carbon
     {
         try {
+            // The leading "!" resets the day to the 1st; without it a value like
+            // "2026-09" is read as "Sep <today's day>" and overflows into the
+            // next month whenever today is the 29th–31st.
             return $value
-                ? Carbon::createFromFormat('Y-m', $value)->startOfMonth()
+                ? Carbon::createFromFormat('!Y-m', $value)->startOfMonth()
                 : Carbon::now()->startOfMonth();
         } catch (\Throwable) {
             return Carbon::now()->startOfMonth();

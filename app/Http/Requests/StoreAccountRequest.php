@@ -30,14 +30,17 @@ class StoreAccountRequest extends FormRequest
             'bank_name' => ['nullable', 'string', 'max:100'],
             'interest_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
-            // Liability / debt
+            // Liability / debt / receivable
             'lender' => ['nullable', 'string', 'max:100'],
-            'apr' => ['nullable', 'numeric', 'min:0', 'max:1000'],
+            'borrowed_on' => ['nullable', 'date'],
+            'monthly_interest_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'due_day_of_month' => [
                 Rule::requiredIf($isLiability),
                 'nullable', 'integer', 'between:1,31',
             ],
+            'term_months' => ['nullable', 'integer', 'between:1,600'],
             'scheduled_payment' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
+            'total_repayment' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
         ];
     }
 }

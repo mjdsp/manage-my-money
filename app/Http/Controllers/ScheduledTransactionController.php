@@ -26,7 +26,7 @@ class ScheduledTransactionController extends Controller
             ->map(fn (ScheduledTransaction $st) => [
                 ...$st->only([
                     'id', 'description', 'type', 'day_of_month', 'lead_time_days', 'is_active',
-                    'category_id', 'from_account_id', 'to_account_id',
+                    'auto_post', 'category_id', 'from_account_id', 'to_account_id',
                 ]),
                 'amount' => $st->amount,
                 'next_due_date' => $st->next_due_date->toDateString(),

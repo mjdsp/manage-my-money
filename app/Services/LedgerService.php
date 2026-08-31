@@ -90,8 +90,8 @@ class LedgerService
 
     /**
      * Record an account's starting balance as a single-sided adjustment.
-     * Assets get a credit (money in); liabilities get a debit (raises the
-     * amount owed to the opening principal).
+     * Assets and receivables get a credit (money in / owed to you); liabilities
+     * get a debit (raises the amount owed to the opening principal).
      */
     public function recordOpeningBalance(Account $account, Money $amount, \DateTimeInterface|string|null $date = null): ?Transaction
     {
@@ -105,7 +105,7 @@ class LedgerService
             'date' => $date ?? now(),
             'description' => 'Opening balance',
             'from_account_id' => $account->isLiability() ? $account->id : null,
-            'to_account_id' => $account->isAsset() ? $account->id : null,
+            'to_account_id' => $account->isLiability() ? null : $account->id,
         ]);
     }
 

@@ -16,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
+import { todayISO } from '@/lib/format';
 import type {
     AccountRef,
     Category,
@@ -71,12 +72,12 @@ export default function TransactionDialog({
     const [open, setOpen] = useState(false);
     const editing = Boolean(transaction);
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISO();
 
     const form = useForm<FormShape>({
         type: (transaction?.type as FormShape['type']) ?? 'expense',
         amount: transaction ? String(transaction.amount.pesos) : '',
-        date: transaction?.date ?? today,
+        date: transaction?.date ? transaction.date.slice(0, 10) : today,
         description: transaction?.description ?? '',
         category_id: transaction?.category_id
             ? String(transaction.category_id)
@@ -95,15 +96,34 @@ export default function TransactionDialog({
     const showCategory = type === 'income' || type === 'expense';
     const categoryChoices = categories.filter((c) => c.kind === type);
 
+    // Switching type changes which of category / from / to apply; drop the ones
+    // that no longer do so a stale value can't be submitted against a hidden
+    // field.
+    function changeType(next: FormShape['type']) {
+        form.setData((data) => ({
+            ...data,
+            type: next,
+            category_id: NONE,
+            from_account_id: NONE,
+            to_account_id: NONE,
+        }));
+        form.clearErrors('category_id', 'from_account_id', 'to_account_id');
+    }
+
     function submit(e: FormEvent) {
         e.preventDefault();
         form.transform((data) => ({
             ...data,
-            category_id: data.category_id === NONE ? '' : data.category_id,
+            category_id:
+                showCategory && data.category_id !== NONE
+                    ? data.category_id
+                    : '',
             from_account_id:
-                data.from_account_id === NONE ? '' : data.from_account_id,
+                showFrom && data.from_account_id !== NONE
+                    ? data.from_account_id
+                    : '',
             to_account_id:
-                data.to_account_id === NONE ? '' : data.to_account_id,
+                showTo && data.to_account_id !== NONE ? data.to_account_id : '',
         }));
 
         const opts = {
@@ -136,7 +156,7 @@ export default function TransactionDialog({
                             <Select
                                 value={type}
                                 onValueChange={(v) =>
-                                    form.setData('type', v as FormShape['type'])
+                                    changeType(v as FormShape['type'])
                                 }
                             >
                                 <SelectTrigger>

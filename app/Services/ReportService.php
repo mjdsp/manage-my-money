@@ -31,12 +31,16 @@ class ReportService
         $accounts = $user->accounts()->active()->orderBy('kind')->orderBy('name')->get();
 
         $assets = $this->sumBalances($accounts->where('kind', AccountKind::Asset));
+        $receivables = $this->sumBalances($accounts->where('kind', AccountKind::Receivable));
         $liabilities = $this->sumBalances($accounts->where('kind', AccountKind::Liability));
 
         return [
             'month' => $month->format('Y-m'),
             'netPosition' => [
                 'assets' => $assets,
+                // Tracked and shown, but NOT part of net worth — an unpaid debt
+                // owed to you only counts once it lands in a real account.
+                'receivables' => $receivables,
                 'liabilities' => $liabilities,
                 'net' => $assets->minus($liabilities),
             ],
@@ -58,7 +62,7 @@ class ReportService
                 'name' => $account->name,
                 'kind' => $account->kind,
                 'balance' => $this->ledger->balance($account),
-                'payoff' => $account->isLiability() ? $this->payoff($account) : null,
+                'payoff' => $account->hasRepaymentPlan() ? $this->payoff($account) : null,
             ])->values(),
         ];
     }
@@ -198,6 +202,12 @@ class ReportService
     private function netWorth(User $user, Carbon $asOf): Money
     {
         return $user->accounts()->get()->reduce(function (Money $carry, Account $account) use ($asOf) {
+            // A receivable is money you're still waiting on — it counts only
+            // once it has actually been repaid into an asset account.
+            if ($account->isReceivable()) {
+                return $carry;
+            }
+
             $balance = $this->ledger->balance($account, $asOf);
 
             return $account->isLiability() ? $carry->minus($balance) : $carry->plus($balance);
@@ -205,18 +215,28 @@ class ReportService
     }
 
     /**
+     * Progress toward clearing a debt. The target is the total amount to be
+     * paid (principal + interest) when that is set, otherwise just the starting
+     * principal. "original" is that target, "owed" is what is still left on it.
+     *
      * @return array{original: Money, owed: Money, paid: Money, pct: float}
      */
     private function payoff(Account $account): array
     {
-        $original = $account->starting_principal ?? Money::zero();
-        $owed = $this->ledger->balance($account);
-        $paid = $original->minus($owed);
-        $pct = $original->isPositive()
-            ? round(max(0, min(100, $paid->cents / $original->cents * 100)), 1)
+        $principal = $account->starting_principal ?? Money::zero();
+        $target = $account->total_repayment ?? $principal;
+
+        // Every repayment is a transfer against the account, so the difference
+        // between the opening principal and the current principal-side balance
+        // is how much has been paid in so far.
+        $paid = $principal->minus($this->ledger->balance($account));
+        $owed = $paid->cents >= $target->cents ? Money::zero() : $target->minus($paid);
+
+        $pct = $target->isPositive()
+            ? round(max(0, min(100, $paid->cents / $target->cents * 100)), 1)
             : 0.0;
 
-        return ['original' => $original, 'owed' => $owed, 'paid' => $paid, 'pct' => $pct];
+        return ['original' => $target, 'owed' => $owed, 'paid' => $paid, 'pct' => $pct];
     }
 
     /**

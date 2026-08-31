@@ -59,6 +59,29 @@ it('downloads the report as a PDF', function () {
     expect($response->headers->get('content-type'))->toContain('application/pdf');
 });
 
+it('measures debt payoff against the total to be repaid, not just principal', function () {
+    $loan = Account::factory()->for($this->user)->liability()->create([
+        'starting_principal' => 300_000_00,
+        'total_repayment' => 390_000_00,
+    ]);
+    $this->ledger->recordOpeningBalance($loan, Money::ofPesos('300000'), '2026-08-01');
+    $this->ledger->post($this->user, [
+        'type' => TransactionType::Transfer, 'amount' => Money::ofPesos('32500'),
+        'date' => '2026-08-10', 'from_account_id' => $this->bank->id, 'to_account_id' => $loan->id,
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('dashboard'))
+        ->assertInertia(function ($page) use ($loan) {
+            $row = collect($page->toArray()['props']['data']['accounts'])
+                ->firstWhere('id', $loan->id);
+
+            expect($row['payoff']['original']['cents'])->toBe(39_000_000) // the total
+                ->and($row['payoff']['paid']['cents'])->toBe(3_250_000)   // one installment
+                ->and($row['payoff']['owed']['cents'])->toBe(35_750_000); // still to pay
+        });
+});
+
 it('does not count opening balances as money saved', function () {
     $savings = Account::factory()->for($this->user)->savings()->create();
     $this->ledger->recordOpeningBalance($savings, Money::ofPesos('50000'), '2026-08-01');

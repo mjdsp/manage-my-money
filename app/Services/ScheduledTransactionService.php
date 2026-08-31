@@ -66,4 +66,32 @@ class ScheduledTransactionService
         $scheduled->advanceDueDate();
         $scheduled->save();
     }
+
+    /**
+     * Post every due cycle of the user's auto-post schedules, catching up any
+     * months that were missed. Returns how many ledger entries were created.
+     */
+    public function postDue(User $user, Carbon|string|null $asOf = null): int
+    {
+        $asOf = $asOf ? Carbon::parse($asOf) : Carbon::now();
+
+        $schedules = $user->scheduledTransactions()
+            ->active()
+            ->where('auto_post', true)
+            ->whereDate('next_due_date', '<=', $asOf)
+            ->get();
+
+        $posted = 0;
+
+        foreach ($schedules as $schedule) {
+            // post() advances next_due_date, so re-check each pass; the guard
+            // stops a bad date from looping forever.
+            for ($guard = 0; $guard < 120 && $schedule->next_due_date->lessThanOrEqualTo($asOf); $guard++) {
+                $this->post($schedule);
+                $posted++;
+            }
+        }
+
+        return $posted;
+    }
 }

@@ -4,7 +4,7 @@ export interface Money {
     formatted: string;
 }
 
-export type AccountKind = 'asset' | 'liability';
+export type AccountKind = 'asset' | 'liability' | 'receivable';
 export type CategoryKind = 'income' | 'expense';
 export type TransactionType = 'income' | 'expense' | 'transfer' | 'adjustment';
 
@@ -16,11 +16,15 @@ export interface Account {
     bank_name: string | null;
     interest_rate: string | null;
     lender: string | null;
-    apr: string | null;
+    borrowed_on: string | null;
+    monthly_interest_rate: string | null;
     due_day_of_month: number | null;
+    term_months: number | null;
     scheduled_payment_amount: Money | null;
+    total_repayment: Money | null;
     starting_principal: Money | null;
     balance?: Money;
+    in_use?: boolean;
 }
 
 export interface Category {
@@ -58,6 +62,7 @@ export interface ScheduledTransaction {
     day_of_month: number;
     lead_time_days: number | null;
     is_active: boolean;
+    auto_post: boolean;
     next_due_date: string;
     last_posted_at: string | null;
     remind_on: string;
@@ -67,6 +72,32 @@ export interface ScheduledTransaction {
     category?: Pick<Category, 'id' | 'name' | 'kind'> | null;
     from_account?: AccountRef | null;
     to_account?: AccountRef | null;
+}
+
+export interface ReimbursementItem {
+    id: number;
+    quantity: number;
+    item_name: string;
+    unit_price: Money;
+    line_total: Money;
+}
+
+export interface ReimbursementPhoto {
+    id: number;
+    name: string;
+    url: string;
+}
+
+export interface Reimbursement {
+    id: number;
+    title: string;
+    notes: string | null;
+    total_amount: Money;
+    created_at: string;
+    items_count?: number;
+    photos_count?: number;
+    items?: ReimbursementItem[];
+    photos?: ReimbursementPhoto[];
 }
 
 export interface Paginated<T> {
