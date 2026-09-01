@@ -3,6 +3,7 @@
 use App\Models\Account;
 use App\Models\ScheduledTransaction;
 use App\Models\User;
+use App\Services\ScheduledTransactionService;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -54,6 +55,55 @@ it('skips a schedule without posting', function () {
 
     expect($this->user->transactions()->count())->toBe(0)
         ->and($st->refresh()->next_due_date->toDateString())->toBe('2026-10-15');
+});
+
+it('creates an auto-post schedule from the form', function () {
+    $this->actingAs($this->user)->post(route('scheduled-transactions.store'), [
+        'description' => 'Salary',
+        'type' => 'income',
+        'amount' => '50000',
+        'day_of_month' => 15,
+        'next_due_date' => '2026-09-15',
+        'to_account_id' => $this->bank->id,
+        'auto_post' => true,
+    ])->assertSessionHasNoErrors();
+
+    expect($this->user->scheduledTransactions()->sole()->auto_post)->toBeTrue();
+});
+
+it('auto-posts due schedules and catches up missed months', function () {
+    $st = ScheduledTransaction::factory()->for($this->user)->autoPost()->create([
+        'type' => 'income',
+        'from_account_id' => null,
+        'to_account_id' => $this->bank->id,
+        'day_of_month' => 1,
+        'next_due_date' => '2026-06-01',
+        'amount' => 10_000_00,
+    ]);
+
+    $posted = app(ScheduledTransactionService::class)
+        ->postDue($this->user, '2026-08-15');
+
+    $st->refresh();
+
+    // June, July and August cycles all land.
+    expect($posted)->toBe(3)
+        ->and($this->user->transactions()->where('scheduled_transaction_id', $st->id)->count())->toBe(3)
+        ->and($st->next_due_date->toDateString())->toBe('2026-09-01');
+});
+
+it('does not auto-post a schedule without the flag', function () {
+    ScheduledTransaction::factory()->for($this->user)->create([
+        'from_account_id' => $this->bank->id,
+        'to_account_id' => null,
+        'next_due_date' => '2026-06-01',
+    ]);
+
+    $posted = app(ScheduledTransactionService::class)
+        ->postDue($this->user, '2026-08-15');
+
+    expect($posted)->toBe(0)
+        ->and($this->user->transactions()->count())->toBe(0);
 });
 
 it('forbids posting another user\'s schedule', function () {

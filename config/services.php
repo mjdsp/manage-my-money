@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'tesseract' => [
+        // Absolute path to the tesseract binary, if it is not on the PATH
+        // (e.g. "C:\Program Files\Tesseract-OCR\tesseract.exe" on Windows).
+        'bin' => env('TESSERACT_BIN'),
+        // "+"-joined language codes for the trained data to load.
+        'langs' => env('TESSERACT_LANGS', 'eng'),
+    ],
+
 ];

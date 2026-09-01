@@ -33,7 +33,13 @@ class ScheduledTransactionFactory extends Factory
             'lead_time_days' => null,
             'last_posted_at' => null,
             'is_active' => true,
+            'auto_post' => false,
         ];
+    }
+
+    public function autoPost(): static
+    {
+        return $this->state(['auto_post' => true]);
     }
 
     public function configure(): static

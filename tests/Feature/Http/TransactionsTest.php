@@ -5,6 +5,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -74,6 +75,28 @@ it('filters by month and type', function () {
     $this->actingAs($this->user)
         ->get(route('transactions.index', ['month' => '2026-08']))
         ->assertInertia(fn ($page) => $page->has('transactions.data', 1));
+});
+
+it('reads a "Y-m" month as the 1st even when today is the 31st', function () {
+    Carbon::setTestNow('2026-08-31');
+
+    Transaction::factory()->for($this->user)->expense()->on('2026-09-10')
+        ->state(['from_account_id' => $this->bank->id])->create();
+
+    $this->actingAs($this->user)
+        ->get(route('transactions.index', ['month' => '2026-09']))
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.month', '2026-09')
+            ->has('transactions.data', 1));
+});
+
+it('returns transaction dates as plain Y-m-d strings', function () {
+    Transaction::factory()->for($this->user)->expense()->on('2026-08-05')
+        ->state(['from_account_id' => $this->bank->id])->create();
+
+    $this->actingAs($this->user)
+        ->get(route('transactions.index', ['month' => '2026-08']))
+        ->assertInertia(fn ($page) => $page->where('transactions.data.0.date', '2026-08-05'));
 });
 
 it('edits and deletes a transaction', function () {

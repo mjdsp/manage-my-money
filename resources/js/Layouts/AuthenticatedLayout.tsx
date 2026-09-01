@@ -3,7 +3,7 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Toaster } from '@/Components/ui/sonner';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,6 +21,11 @@ const NAV: { label: string; route: string; pattern: string }[] = [
     },
     { label: 'Accounts', route: 'accounts.index', pattern: 'accounts.*' },
     { label: 'Categories', route: 'categories.index', pattern: 'categories.*' },
+    {
+        label: 'Reimbursements',
+        route: 'reimbursements.index',
+        pattern: 'reimbursements.*',
+    },
     { label: 'Reports', route: 'reports.monthly', pattern: 'reports.*' },
 ];
 
@@ -34,11 +39,22 @@ export default function Authenticated({
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
+    // A toast renders in a portal and outlives the page that triggered it, so
+    // without this it stays on screen after you navigate away. Dismiss any
+    // visible toast the moment the next navigation starts.
+    useEffect(() => router.on('start', () => toast.dismiss()), []);
+
     useEffect(() => {
         if (flash?.status) {
             toast.success(flash.status);
         }
     }, [flash?.status]);
+
+    useEffect(() => {
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash?.error]);
 
     return (
         <div className="min-h-screen bg-gray-100">

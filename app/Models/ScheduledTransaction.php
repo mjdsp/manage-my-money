@@ -29,6 +29,7 @@ class ScheduledTransaction extends Model
         'lead_time_days',
         'last_posted_at',
         'is_active',
+        'auto_post',
     ];
 
     protected function casts(): array
@@ -41,6 +42,7 @@ class ScheduledTransaction extends Model
             'lead_time_days' => 'integer',
             'last_posted_at' => 'datetime',
             'is_active' => 'boolean',
+            'auto_post' => 'boolean',
         ];
     }
 

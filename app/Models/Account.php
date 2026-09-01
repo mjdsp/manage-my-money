@@ -23,9 +23,12 @@ class Account extends Model
         'bank_name',
         'interest_rate',
         'lender',
-        'apr',
+        'borrowed_on',
+        'monthly_interest_rate',
         'due_day_of_month',
+        'term_months',
         'scheduled_payment_amount',
+        'total_repayment',
         'starting_principal',
     ];
 
@@ -35,9 +38,12 @@ class Account extends Model
             'kind' => AccountKind::class,
             'is_archived' => 'boolean',
             'interest_rate' => 'decimal:3',
-            'apr' => 'decimal:3',
+            'monthly_interest_rate' => 'decimal:3',
             'due_day_of_month' => 'integer',
+            'term_months' => 'integer',
+            'borrowed_on' => 'date',
             'scheduled_payment_amount' => Money::class,
+            'total_repayment' => Money::class,
             'starting_principal' => Money::class,
         ];
     }
@@ -68,6 +74,18 @@ class Account extends Model
     public function isLiability(): bool
     {
         return $this->kind === AccountKind::Liability;
+    }
+
+    /** A debt someone owes to the user (a receivable). */
+    public function isReceivable(): bool
+    {
+        return $this->kind === AccountKind::Receivable;
+    }
+
+    /** Liability or receivable: carries a borrower and a repayment plan. */
+    public function hasRepaymentPlan(): bool
+    {
+        return $this->kind->hasRepaymentPlan();
     }
 
     /** @param  Builder<Account>  $query */

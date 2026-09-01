@@ -41,8 +41,11 @@ class MonthlyReportController extends Controller
     private function resolveMonth(?string $value): Carbon
     {
         try {
+            // The leading "!" resets the day to the 1st; otherwise a value like
+            // "2026-09" is parsed as "Sep <today's day>" and rolls into October
+            // whenever today is the 29th–31st.
             $month = $value
-                ? Carbon::createFromFormat('Y-m', $value)->startOfMonth()
+                ? Carbon::createFromFormat('!Y-m', $value)->startOfMonth()
                 : Carbon::now()->startOfMonth()->subMonthNoOverflow();
         } catch (\Throwable) {
             $month = Carbon::now()->startOfMonth()->subMonthNoOverflow();

@@ -34,6 +34,7 @@ class ScheduledTransactionRequest extends FormRequest
             'next_due_date' => ['required', 'date'],
             'lead_time_days' => ['nullable', 'integer', 'between:0,60'],
             'is_active' => ['boolean'],
+            'auto_post' => ['boolean'],
 
             'category_id' => ['nullable', $ownedCategory],
             'from_account_id' => [
@@ -82,6 +83,7 @@ class ScheduledTransactionRequest extends FormRequest
             'next_due_date' => $v['next_due_date'],
             'lead_time_days' => $v['lead_time_days'] ?? null,
             'is_active' => $this->boolean('is_active', true),
+            'auto_post' => $this->boolean('auto_post'),
             'category_id' => $v['category_id'] ?? null,
             'from_account_id' => $v['from_account_id'] ?? null,
             'to_account_id' => $v['to_account_id'] ?? null,
