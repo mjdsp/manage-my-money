@@ -37,30 +37,30 @@ export default function Modal({
             <Dialog
                 as="div"
                 id="modal"
-                className="fixed inset-0 z-50 flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
+                className="fixed inset-0 z-50 flex transform items-end overflow-y-auto px-0 pt-6 sm:items-center sm:px-4 sm:py-6"
                 onClose={close}
             >
                 <TransitionChild
-                    enter="ease-out duration-300"
+                    enter="ease-out duration-200"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in duration-200"
+                    leave="ease-out duration-150"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="absolute inset-0 bg-gray-500/75" />
+                    <div className="absolute inset-0 bg-[oklch(0.222_0.012_237/0.32)]" />
                 </TransitionChild>
 
                 <TransitionChild
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    enter="ease-drawer duration-300 sm:ease-out sm:duration-200"
+                    enterFrom="opacity-0 translate-y-full sm:translate-y-0 sm:scale-[0.97]"
                     enterTo="opacity-100 translate-y-0 sm:scale-100"
-                    leave="ease-in duration-200"
+                    leave="ease-out duration-200 sm:duration-150"
                     leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                    leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    leaveTo="opacity-0 translate-y-full sm:translate-y-0 sm:scale-[0.97]"
                 >
                     <DialogPanel
-                        className={`mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
+                        className={`bg-paper shadow-pop w-full transform overflow-hidden rounded-t-2xl pb-[env(safe-area-inset-bottom,0px)] transition-[opacity,translate,scale] sm:mx-auto sm:mb-6 sm:rounded-lg sm:pb-0 ${maxWidthClass}`}
                     >
                         {children}
                     </DialogPanel>

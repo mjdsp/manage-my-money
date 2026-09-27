@@ -1,14 +1,15 @@
+import FormField from '@/Components/FormField';
 import { Button } from '@/Components/ui/button';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import {
     Select,
     SelectContent,
@@ -23,7 +24,7 @@ import type {
     Transaction,
     TransactionType,
 } from '@/types/models';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { FormEvent, ReactNode, useState } from 'react';
 
 type AccountOption = Pick<AccountRef, 'id' | 'name'> & { kind: string };
@@ -40,36 +41,29 @@ type FormShape = {
 
 const NONE = 'none';
 
-function Field({
-    label,
-    error,
-    children,
-}: {
-    label: string;
-    error?: string;
-    children: ReactNode;
-}) {
-    return (
-        <div className="space-y-1.5">
-            <Label>{label}</Label>
-            {children}
-            {error && <p className="text-sm text-red-600">{error}</p>}
-        </div>
-    );
-}
-
+/**
+ * Add or edit a transaction. Pass `trigger` for a self-contained dialog, or
+ * `open` / `onOpenChange` to drive one shared dialog from a list.
+ */
 export default function TransactionDialog({
     trigger,
     transaction,
     accounts,
     categories,
+    open: controlledOpen,
+    onOpenChange,
 }: {
-    trigger: ReactNode;
+    trigger?: ReactNode;
     transaction?: Transaction;
     accounts: AccountOption[];
     categories: Category[];
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }) {
-    const [open, setOpen] = useState(false);
+    const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+    const open = controlledOpen ?? uncontrolledOpen;
+    const setOpen = onOpenChange ?? setUncontrolledOpen;
+    const [deleting, setDeleting] = useState(false);
     const editing = Boolean(transaction);
 
     const today = todayISO();
@@ -141,25 +135,45 @@ export default function TransactionDialog({
         }
     }
 
+    function destroy() {
+        if (!transaction) return;
+        if (
+            !window.confirm('Delete this transaction? This cannot be undone.')
+        ) {
+            return;
+        }
+        setDeleting(true);
+        router.delete(route('transactions.destroy', transaction.id), {
+            preserveScroll: true,
+            onSuccess: () => setOpen(false),
+            onFinish: () => setDeleting(false),
+        });
+    }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{trigger}</DialogTrigger>
+            {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>
                         {editing ? 'Edit transaction' : 'New transaction'}
                     </DialogTitle>
+                    <DialogDescription>
+                        {editing
+                            ? 'Changes update every balance this touches.'
+                            : 'Money in, money out, or a move between your accounts.'}
+                    </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={submit} className="space-y-4">
+                <form onSubmit={submit} className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Type" error={form.errors.type}>
+                        <FormField label="Type" error={form.errors.type}>
                             <Select
                                 value={type}
                                 onValueChange={(v) =>
                                     changeType(v as FormShape['type'])
                                 }
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -174,22 +188,23 @@ export default function TransactionDialog({
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                        </Field>
-                        <Field label="Amount" error={form.errors.amount}>
+                        </FormField>
+                        <FormField label="Amount" error={form.errors.amount}>
                             <Input
                                 inputMode="decimal"
                                 placeholder="0.00"
+                                className="figures"
                                 value={form.data.amount}
                                 onChange={(e) =>
                                     form.setData('amount', e.target.value)
                                 }
                                 autoFocus
                             />
-                        </Field>
+                        </FormField>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Date" error={form.errors.date}>
+                        <FormField label="Date" error={form.errors.date}>
                             <Input
                                 type="date"
                                 value={form.data.date}
@@ -197,9 +212,9 @@ export default function TransactionDialog({
                                     form.setData('date', e.target.value)
                                 }
                             />
-                        </Field>
+                        </FormField>
                         {showCategory && (
-                            <Field
+                            <FormField
                                 label="Category"
                                 error={form.errors.category_id}
                             >
@@ -209,7 +224,7 @@ export default function TransactionDialog({
                                         form.setData('category_id', v)
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Uncategorised" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -226,23 +241,27 @@ export default function TransactionDialog({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </Field>
+                            </FormField>
                         )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         {showFrom && (
-                            <Field
+                            <FormField
                                 label="From account"
                                 error={form.errors.from_account_id}
                             >
                                 <Select
-                                    value={form.data.from_account_id}
+                                    value={
+                                        form.data.from_account_id === NONE
+                                            ? ''
+                                            : form.data.from_account_id
+                                    }
                                     onValueChange={(v) =>
                                         form.setData('from_account_id', v)
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -256,20 +275,24 @@ export default function TransactionDialog({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </Field>
+                            </FormField>
                         )}
                         {showTo && (
-                            <Field
+                            <FormField
                                 label="To account"
                                 error={form.errors.to_account_id}
                             >
                                 <Select
-                                    value={form.data.to_account_id}
+                                    value={
+                                        form.data.to_account_id === NONE
+                                            ? ''
+                                            : form.data.to_account_id
+                                    }
                                     onValueChange={(v) =>
                                         form.setData('to_account_id', v)
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -283,21 +306,38 @@ export default function TransactionDialog({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </Field>
+                            </FormField>
                         )}
                     </div>
 
-                    <Field label="Description" error={form.errors.description}>
+                    <FormField
+                        label="Description"
+                        error={form.errors.description}
+                    >
                         <Input
                             value={form.data.description}
                             onChange={(e) =>
                                 form.setData('description', e.target.value)
                             }
                         />
-                    </Field>
+                    </FormField>
 
-                    <DialogFooter>
-                        <Button type="submit" disabled={form.processing}>
+                    <DialogFooter className="mt-2">
+                        {editing && (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                className="sm:mr-auto"
+                                disabled={deleting || form.processing}
+                                onClick={destroy}
+                            >
+                                Delete
+                            </Button>
+                        )}
+                        <Button
+                            type="submit"
+                            disabled={form.processing || deleting}
+                        >
                             {editing ? 'Save changes' : 'Add transaction'}
                         </Button>
                     </DialogFooter>

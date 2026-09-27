@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { HTMLAttributes } from 'react';
 
 export default function InputError({
@@ -6,7 +7,11 @@ export default function InputError({
     ...props
 }: HTMLAttributes<HTMLParagraphElement> & { message?: string }) {
     return message ? (
-        <p {...props} className={'text-sm text-red-600 ' + className}>
+        <p
+            role="alert"
+            {...props}
+            className={cn('text-past-due text-[0.8125rem]', className)}
+        >
             {message}
         </p>
     ) : null;

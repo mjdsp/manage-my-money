@@ -1,0 +1,532 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T13:37:22+00:00",
+  "title": "Design System: Manage My Money",
+  "extensions": {
+    "colorMeta": {
+      "issuer-teal": {
+        "role": "primary",
+        "displayName": "Issuer Teal",
+        "canonical": "oklch(0.394 0.063 210.5)",
+        "tonalRamp": [
+          "oklch(0.18 0.035 210.5)",
+          "oklch(0.28 0.044 210.5)",
+          "oklch(0.38 0.052 210.5)",
+          "oklch(0.50 0.063 210.5)",
+          "oklch(0.62 0.052 210.5)",
+          "oklch(0.74 0.042 210.5)",
+          "oklch(0.86 0.031 210.5)",
+          "oklch(0.95 0.023 210.5)"
+        ]
+      },
+      "issuer-teal-deep": {
+        "role": "primary",
+        "displayName": "Deep Issuer Teal",
+        "canonical": "oklch(0.35 0.056 211.2)",
+        "tonalRamp": [
+          "oklch(0.18 0.031 211.2)",
+          "oklch(0.28 0.039 211.2)",
+          "oklch(0.38 0.047 211.2)",
+          "oklch(0.50 0.056 211.2)",
+          "oklch(0.62 0.047 211.2)",
+          "oklch(0.74 0.037 211.2)",
+          "oklch(0.86 0.028 211.2)",
+          "oklch(0.95 0.021 211.2)"
+        ]
+      },
+      "issuer-teal-mist": {
+        "role": "primary",
+        "displayName": "Teal Mist",
+        "canonical": "oklch(0.819 0.037 205.2)",
+        "tonalRamp": [
+          "oklch(0.18 0.020 205.2)",
+          "oklch(0.28 0.026 205.2)",
+          "oklch(0.38 0.031 205.2)",
+          "oklch(0.50 0.037 205.2)",
+          "oklch(0.62 0.031 205.2)",
+          "oklch(0.74 0.025 205.2)",
+          "oklch(0.86 0.018 205.2)",
+          "oklch(0.95 0.014 205.2)"
+        ]
+      },
+      "teal-wash": {
+        "role": "primary",
+        "displayName": "Teal Wash",
+        "canonical": "oklch(0.943 0.013 202.9)",
+        "tonalRamp": [
+          "oklch(0.18 0.007 202.9)",
+          "oklch(0.28 0.009 202.9)",
+          "oklch(0.38 0.011 202.9)",
+          "oklch(0.50 0.013 202.9)",
+          "oklch(0.62 0.011 202.9)",
+          "oklch(0.74 0.009 202.9)",
+          "oklch(0.86 0.006 202.9)",
+          "oklch(0.95 0.005 202.9)"
+        ]
+      },
+      "desk": {
+        "role": "neutral",
+        "displayName": "Desk",
+        "canonical": "oklch(0.945 0.005 197.1)",
+        "tonalRamp": [
+          "oklch(0.18 0.003 197.1)",
+          "oklch(0.28 0.004 197.1)",
+          "oklch(0.38 0.005 197.1)",
+          "oklch(0.50 0.006 197.1)",
+          "oklch(0.62 0.005 197.1)",
+          "oklch(0.74 0.004 197.1)",
+          "oklch(0.86 0.003 197.1)",
+          "oklch(0.95 0.002 197.1)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Statement White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.18 0.003 0.0)",
+          "oklch(0.28 0.004 0.0)",
+          "oklch(0.38 0.005 0.0)",
+          "oklch(0.50 0.006 0.0)",
+          "oklch(0.62 0.005 0.0)",
+          "oklch(0.74 0.004 0.0)",
+          "oklch(0.86 0.003 0.0)",
+          "oklch(0.95 0.002 0.0)"
+        ]
+      },
+      "paper-shade": {
+        "role": "neutral",
+        "displayName": "Paper Shade",
+        "canonical": "oklch(0.967 0.004 197)",
+        "tonalRamp": [
+          "oklch(0.18 0.003 197.0)",
+          "oklch(0.28 0.004 197.0)",
+          "oklch(0.38 0.005 197.0)",
+          "oklch(0.50 0.006 197.0)",
+          "oklch(0.62 0.005 197.0)",
+          "oklch(0.74 0.004 197.0)",
+          "oklch(0.86 0.003 197.0)",
+          "oklch(0.95 0.002 197.0)"
+        ]
+      },
+      "printers-ink": {
+        "role": "neutral",
+        "displayName": "Printer's Ink",
+        "canonical": "oklch(0.222 0.012 237.3)",
+        "tonalRamp": [
+          "oklch(0.18 0.007 237.3)",
+          "oklch(0.28 0.008 237.3)",
+          "oklch(0.38 0.010 237.3)",
+          "oklch(0.50 0.012 237.3)",
+          "oklch(0.62 0.010 237.3)",
+          "oklch(0.74 0.008 237.3)",
+          "oklch(0.86 0.006 237.3)",
+          "oklch(0.95 0.004 237.3)"
+        ]
+      },
+      "ink-secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "oklch(0.486 0.02 242.7)",
+        "tonalRamp": [
+          "oklch(0.18 0.011 242.7)",
+          "oklch(0.28 0.014 242.7)",
+          "oklch(0.38 0.017 242.7)",
+          "oklch(0.50 0.020 242.7)",
+          "oklch(0.62 0.017 242.7)",
+          "oklch(0.74 0.013 242.7)",
+          "oklch(0.86 0.010 242.7)",
+          "oklch(0.95 0.007 242.7)"
+        ]
+      },
+      "ink-tertiary": {
+        "role": "neutral",
+        "displayName": "Tertiary Ink",
+        "canonical": "oklch(0.528 0.018 239.4)",
+        "tonalRamp": [
+          "oklch(0.18 0.010 239.4)",
+          "oklch(0.28 0.012 239.4)",
+          "oklch(0.38 0.015 239.4)",
+          "oklch(0.50 0.018 239.4)",
+          "oklch(0.62 0.015 239.4)",
+          "oklch(0.74 0.012 239.4)",
+          "oklch(0.86 0.009 239.4)",
+          "oklch(0.95 0.007 239.4)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "oklch(0.899 0.008 207.1)",
+        "tonalRamp": [
+          "oklch(0.18 0.004 207.1)",
+          "oklch(0.28 0.006 207.1)",
+          "oklch(0.38 0.007 207.1)",
+          "oklch(0.50 0.008 207.1)",
+          "oklch(0.62 0.007 207.1)",
+          "oklch(0.74 0.005 207.1)",
+          "oklch(0.86 0.004 207.1)",
+          "oklch(0.95 0.003 207.1)"
+        ]
+      },
+      "rule-soft": {
+        "role": "neutral",
+        "displayName": "Soft Rule",
+        "canonical": "oklch(0.939 0.005 197.1)",
+        "tonalRamp": [
+          "oklch(0.18 0.003 197.1)",
+          "oklch(0.28 0.004 197.1)",
+          "oklch(0.38 0.005 197.1)",
+          "oklch(0.50 0.006 197.1)",
+          "oklch(0.62 0.005 197.1)",
+          "oklch(0.74 0.004 197.1)",
+          "oklch(0.86 0.003 197.1)",
+          "oklch(0.95 0.002 197.1)"
+        ]
+      },
+      "field-stroke": {
+        "role": "neutral",
+        "displayName": "Field Stroke",
+        "canonical": "oklch(0.663 0.015 226.7)",
+        "tonalRamp": [
+          "oklch(0.18 0.008 226.7)",
+          "oklch(0.28 0.010 226.7)",
+          "oklch(0.38 0.012 226.7)",
+          "oklch(0.50 0.015 226.7)",
+          "oklch(0.62 0.012 226.7)",
+          "oklch(0.74 0.010 226.7)",
+          "oklch(0.86 0.007 226.7)",
+          "oklch(0.95 0.006 226.7)"
+        ]
+      },
+      "highlighter": {
+        "role": "tertiary",
+        "displayName": "Highlighter",
+        "canonical": "oklch(0.953 0.093 98.6)",
+        "tonalRamp": [
+          "oklch(0.18 0.051 98.6)",
+          "oklch(0.28 0.064 98.6)",
+          "oklch(0.38 0.077 98.6)",
+          "oklch(0.50 0.093 98.6)",
+          "oklch(0.62 0.077 98.6)",
+          "oklch(0.74 0.062 98.6)",
+          "oklch(0.86 0.046 98.6)",
+          "oklch(0.95 0.034 98.6)"
+        ]
+      },
+      "highlighter-ink": {
+        "role": "tertiary",
+        "displayName": "Highlighter Ink",
+        "canonical": "oklch(0.423 0.087 96.2)",
+        "tonalRamp": [
+          "oklch(0.18 0.048 96.2)",
+          "oklch(0.28 0.060 96.2)",
+          "oklch(0.38 0.072 96.2)",
+          "oklch(0.50 0.087 96.2)",
+          "oklch(0.62 0.072 96.2)",
+          "oklch(0.74 0.058 96.2)",
+          "oklch(0.86 0.043 96.2)",
+          "oklch(0.95 0.032 96.2)"
+        ]
+      },
+      "past-due": {
+        "role": "tertiary",
+        "displayName": "Past-Due Red",
+        "canonical": "oklch(0.54 0.198 29)",
+        "tonalRamp": [
+          "oklch(0.18 0.109 29.0)",
+          "oklch(0.28 0.137 29.0)",
+          "oklch(0.38 0.165 29.0)",
+          "oklch(0.50 0.198 29.0)",
+          "oklch(0.62 0.165 29.0)",
+          "oklch(0.74 0.131 29.0)",
+          "oklch(0.86 0.098 29.0)",
+          "oklch(0.95 0.073 29.0)"
+        ]
+      },
+      "past-due-wash": {
+        "role": "tertiary",
+        "displayName": "Past-Due Wash",
+        "canonical": "oklch(0.95 0.019 25.6)",
+        "tonalRamp": [
+          "oklch(0.18 0.010 25.6)",
+          "oklch(0.28 0.013 25.6)",
+          "oklch(0.38 0.016 25.6)",
+          "oklch(0.50 0.019 25.6)",
+          "oklch(0.62 0.016 25.6)",
+          "oklch(0.74 0.013 25.6)",
+          "oklch(0.86 0.009 25.6)",
+          "oklch(0.95 0.007 25.6)"
+        ]
+      },
+      "credit": {
+        "role": "secondary",
+        "displayName": "Credit Green",
+        "canonical": "oklch(0.514 0.115 155.8)",
+        "tonalRamp": [
+          "oklch(0.18 0.063 155.8)",
+          "oklch(0.28 0.080 155.8)",
+          "oklch(0.38 0.096 155.8)",
+          "oklch(0.50 0.115 155.8)",
+          "oklch(0.62 0.096 155.8)",
+          "oklch(0.74 0.076 155.8)",
+          "oklch(0.86 0.057 155.8)",
+          "oklch(0.95 0.043 155.8)"
+        ]
+      },
+      "credit-wash": {
+        "role": "secondary",
+        "displayName": "Credit Wash",
+        "canonical": "oklch(0.949 0.017 159.1)",
+        "tonalRamp": [
+          "oklch(0.18 0.009 159.1)",
+          "oklch(0.28 0.012 159.1)",
+          "oklch(0.38 0.014 159.1)",
+          "oklch(0.50 0.017 159.1)",
+          "oklch(0.62 0.014 159.1)",
+          "oklch(0.74 0.011 159.1)",
+          "oklch(0.86 0.008 159.1)",
+          "oklch(0.95 0.006 159.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The one figure per region that matters: net worth, amount due, net-worth change. Sized to its container."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles, including the statement period."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section and sheet headings."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Stub amounts and line totals."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Row names and running text."
+      },
+      "body-small": {
+        "displayName": "Body small",
+        "purpose": "Descriptions, meta lines and hints in Secondary Ink."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Statement field labels and table headings, condensed caps over a value."
+      },
+      "stamp": {
+        "displayName": "Stamp",
+        "purpose": "Printed status marks beside a line."
+      }
+    },
+    "shadows": [
+      {
+        "name": "sheet",
+        "value": "0 0 0 1px oklch(0.222 0.012 237 / 0.07), 0 1px 2px oklch(0.222 0.012 237 / 0.06), 0 12px 28px -16px oklch(0.222 0.012 237 / 0.22)",
+        "purpose": "Every statement sheet resting on the desk."
+      },
+      {
+        "name": "stub",
+        "value": "drop-shadow(0 0 0.5px oklch(0.222 0.012 237 / 0.34)) drop-shadow(0 1px 1.5px oklch(0.222 0.012 237 / 0.08))",
+        "purpose": "Payment stubs; a filter so the outline follows the notches."
+      },
+      {
+        "name": "pop",
+        "value": "0 0 0 1px oklch(0.222 0.012 237 / 0.08), 0 4px 10px -4px oklch(0.222 0.012 237 / 0.12), 0 20px 44px -16px oklch(0.222 0.012 237 / 0.32)",
+        "purpose": "Menus, selects, dialogs, bottom sheets and toasts."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Entrances, presses, menus and the stub tear."
+      },
+      {
+        "name": "ease-in-out",
+        "value": "cubic-bezier(0.77, 0, 0.175, 1)",
+        "purpose": "On-screen movement."
+      },
+      {
+        "name": "ease-drawer",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Phone bottom sheets rising from the edge."
+      },
+      {
+        "name": "press",
+        "value": "160ms",
+        "purpose": "Button press feedback, scale(0.97)."
+      },
+      {
+        "name": "menu",
+        "value": "150ms",
+        "purpose": "Dropdowns, selects and popovers (fade + scale from 0.97, from the trigger)."
+      },
+      {
+        "name": "dialog",
+        "value": "200ms",
+        "purpose": "Centred dialogs; bottom sheets 300ms in, 200ms out."
+      },
+      {
+        "name": "stub-tear",
+        "value": "240ms",
+        "purpose": "The payment slip tearing off when a schedule is posted."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled action on a sheet: Post, Add transaction, Save.",
+      "html": "<button class=\"ds-btn-primary\">Post</button>",
+      "css": ".ds-btn-primary { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid transparent; border-radius: 6px; background: var(--band); color: var(--band-ink); font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease; } .ds-btn-primary:hover { background: var(--band-hover); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions: Edit, Manage schedules, Upload photos.",
+      "html": "<button class=\"ds-btn-outline\">Manage schedules</button>",
+      "css": ".ds-btn-outline { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid var(--input); border-radius: 6px; background: var(--paper); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease, border-color 150ms ease; } .ds-btn-outline:hover { background: var(--muted); border-color: var(--ink-3); } .ds-btn-outline:active { transform: scale(0.97); } .ds-btn-outline:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Every form field; 44px tall and 16px text on touch screens.",
+      "html": "<label class=\"ds-field\"><span>Amount</span><input class=\"ds-input\" inputmode=\"decimal\" placeholder=\"0.00\"></label>",
+      "css": ".ds-field { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; display: grid; gap: 6px; } .ds-field span { font-size: 13px; font-weight: 600; color: var(--ink); } .ds-input { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; height: 36px; padding: 4px 12px; border: 1px solid var(--input); border-radius: 6px; background: var(--paper); color: var(--ink); font-size: 14px; font-variant-numeric: tabular-nums; caret-color: var(--band); outline: none; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: var(--ink-3); } .ds-input:focus-visible { border-color: var(--band); box-shadow: 0 0 0 3px oklch(0.394 0.063 210.5 / 0.2); }"
+    },
+    {
+      "name": "Stamp",
+      "kind": "chip",
+      "refersTo": "stamp-past-due",
+      "description": "Printed status marks beside a line.",
+      "html": "<span class=\"ds-stamp ds-stamp-late\">Past due</span> <span class=\"ds-stamp ds-stamp-in\">Incoming</span> <span class=\"ds-stamp\">Transfer</span>",
+      "css": ".ds-stamp { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border: 1px solid oklch(0.528 0.018 239.4 / 0.4); border-radius: 3px; color: var(--ink-2); font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-stretch: 80%; } .ds-stamp-late { border-color: oklch(0.54 0.198 29 / 0.5); background: var(--past-due-tint); color: var(--past-due); } .ds-stamp-in { border-color: oklch(0.514 0.115 155.8 / 0.4); background: var(--credit-tint); color: var(--credit); }"
+    },
+    {
+      "name": "Summary Ladder",
+      "kind": "custom",
+      "refersTo": "sheet",
+      "description": "Where you stand: assets less liabilities, ruled off as net worth.",
+      "html": "<dl class=\"ds-ladder\"><div><span></span><dt>Assets</dt><dd>₱1,634.21</dd></div><div class=\"ds-ladder-sub\"><span>−</span><dt>Liabilities</dt><dd>₱0.00</dd></div><div class=\"ds-ladder-total\"><span>=</span><dt>Net worth</dt><dd><small>₱</small>1,634<small>.21</small></dd></div></dl>",
+      "css": ".ds-ladder { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; margin: 0; padding: 24px; background: var(--paper); border-radius: 5px; box-shadow: 0 0 0 1px oklch(0.222 0.012 237 / 0.07), 0 12px 28px -16px oklch(0.222 0.012 237 / 0.22); color: var(--ink); font-variant-numeric: tabular-nums lining-nums; } .ds-ladder div { display: flex; align-items: baseline; gap: 8px; padding: 10px 0; } .ds-ladder span { width: 20px; color: var(--ink-2); } .ds-ladder dt { margin-right: auto; font-weight: 600; font-size: 15px; } .ds-ladder dd { margin: 0; font-weight: 600; font-size: 15px; } .ds-ladder-sub { border-bottom: 1px solid var(--ink); } .ds-ladder-total { border-bottom: 3px double var(--ink); padding: 16px 0 !important; } .ds-ladder-total dd { font-size: 48px; font-weight: 700; letter-spacing: -0.035em; font-stretch: 116%; line-height: 0.95; } .ds-ladder-total small { font-size: 0.5em; }"
+    },
+    {
+      "name": "Amount Due Box",
+      "kind": "custom",
+      "refersTo": "amount-due-box",
+      "description": "The one box on the statement you have to act on; the only yellow on the page.",
+      "html": "<div class=\"ds-due\"><p class=\"ds-due-strip\">Past due · 1 bill · ₱2,845.50</p><div class=\"ds-due-body\"><p class=\"ds-due-label\">Amount due</p><p class=\"ds-due-figure\"><small>₱</small>12,498<small>.37</small></p><p class=\"ds-due-meta\"><b>Sep 21, 2026</b> <em>2 days late</em></p></div></div>",
+      "css": ".ds-due { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; border: 1.5px solid var(--ink); border-radius: 3px; background: var(--due); color: var(--ink); overflow: hidden; max-width: 360px; } .ds-due-strip { margin: 0; padding: 6px 16px; background: var(--past-due); color: #fff; font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-stretch: 78%; } .ds-due-body { padding: 20px 24px; } .ds-due-label { margin: 0 0 4px; color: var(--due-ink); font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-stretch: 78%; } .ds-due-figure { margin: 0; font-size: 44px; font-weight: 700; letter-spacing: -0.035em; font-stretch: 116%; line-height: 0.95; font-variant-numeric: tabular-nums; } .ds-due-figure small { font-size: 0.5em; } .ds-due-meta { margin: 16px 0 0; font-size: 14px; } .ds-due-meta em { color: var(--past-due); font-style: normal; font-weight: 600; }"
+    },
+    {
+      "name": "Payment Stub",
+      "kind": "custom",
+      "refersTo": "stub",
+      "description": "A scheduled payment: notched and perforated above the slip you tear off by posting.",
+      "html": "<article class=\"ds-stub\"><div class=\"ds-stub-top\"><h3>Electric bill</h3><p class=\"ds-stub-amount\"><small>₱</small>2,845<small>.50</small></p><p class=\"ds-stub-due\">Sep 21 · 2 days late</p></div><div class=\"ds-stub-foot\"><button>Post</button><button class=\"ds-stub-skip\">Skip</button></div></article>",
+      "css": ".ds-stub { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; display: flex; flex-direction: column; max-width: 280px; color: var(--ink); filter: drop-shadow(0 0 0.5px oklch(0.222 0.012 237 / 0.34)) drop-shadow(0 1px 1.5px oklch(0.222 0.012 237 / 0.08)); } .ds-stub-top { position: relative; padding: 16px 16px 20px; background: var(--paper); border-radius: 5px 5px 0 0; mask: radial-gradient(circle 6px at 0 100%, #0000 95%, #000) left / 51% 100% no-repeat, radial-gradient(circle 6px at 100% 100%, #0000 95%, #000) right / 51% 100% no-repeat; } .ds-stub-top::after { content: \"\"; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; background: radial-gradient(circle, var(--input) 1.1px, transparent 1.4px) left center / 7px 3px repeat-x; } .ds-stub h3 { margin: 0; font-size: 15px; font-weight: 600; } .ds-stub-amount { margin: 12px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; font-stretch: 108%; font-variant-numeric: tabular-nums; } .ds-stub-amount small { font-size: 0.72em; } .ds-stub-due { margin: 8px 0 0; font-size: 13px; font-weight: 600; color: var(--past-due); } .ds-stub-foot { display: flex; gap: 6px; padding: 10px 12px; background: var(--paper); border-radius: 0 0 5px 5px; mask: radial-gradient(circle 6px at 0 0, #0000 95%, #000) left / 51% 100% no-repeat, radial-gradient(circle 6px at 100% 0, #0000 95%, #000) right / 51% 100% no-repeat; } .ds-stub-foot button { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: var(--band); color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-stub-foot button:active { transform: scale(0.97); } .ds-stub-foot .ds-stub-skip { background: transparent; color: var(--ink); }"
+    },
+    {
+      "name": "Issuer Band",
+      "kind": "nav",
+      "refersTo": "issuer-band",
+      "description": "The top of every page: mark, wordmark, section tabs; the current tab is cut out of the band in desk colour.",
+      "html": "<nav class=\"ds-band\"><span class=\"ds-band-mark\">Manage My Money</span><a class=\"ds-band-tab ds-band-tab-active\" href=\"#\">Dashboard</a><a class=\"ds-band-tab\" href=\"#\">Transactions</a><a class=\"ds-band-tab\" href=\"#\">Scheduled</a></nav>",
+      "css": ".ds-band { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; display: flex; align-items: flex-end; gap: 2px; height: 64px; padding: 0 24px; background: var(--band); } .ds-band-mark { align-self: center; margin-right: 24px; color: var(--band-ink); font-weight: 600; font-size: 15px; font-stretch: 112%; } .ds-band-tab { display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 6px 6px 0 0; color: var(--band-ink-2); font-size: 14px; font-weight: 500; text-decoration: none; transition: color 150ms, background-color 150ms; } .ds-band-tab:hover { color: var(--band-ink); background: rgb(255 255 255 / 0.08); } .ds-band-tab-active { background: var(--desk); color: var(--ink); } .ds-band-tab:focus-visible { outline: 2px solid var(--band-ink); outline-offset: -2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Statement",
+    "overview": "Money is issued to its owner the way a bank or a utility issues a monthly statement of account. Every screen is a white sheet resting on a cool desk, headed by one teal issuer band. Figures are set in tabular numerals, itemised on hairline rules, and closed off with a single rule above a total and a double rule below the grand total. The amount you have to act on is boxed in highlighter yellow, the only yellow anywhere, and scheduled payments are tear-off stubs with a perforation you can post along.\n\nIt is an operating surface first. Density is statement-like: calm, exact and scannable, with brand living in the details (the ruled ladder, the stamps, the perforation) rather than in decoration. Structure carries the hierarchy: the net-worth total is the one display-size figure, and scale does the work that extra boxes would otherwise do. On a phone the statement arrives folded: what you stand on and what is due come first, while breakdowns unfold in place.\n\nThis world was chosen to replace a generic dashboard of equal KPI tiles and a category donut. It rejects that arrangement, and it rejects cream-paper nostalgia too: the desk is cool grey-green and the paper is plain white.",
+    "keyCharacteristics": [
+      "White statement sheets on a cool grey-green desk, one teal issuer band on top.",
+      "Archivo variable throughout, with its width axis used for expanded display figures and condensed caps labels.",
+      "Tabular lining figures, a true minus sign, and ruled totals: single rule above, double rule below.",
+      "Highlighter yellow reserved for the amount due; red reserved for money that is late.",
+      "Scheduled payments rendered as notched, perforated stubs whose payment slip tears off when posted."
+    ],
+    "rules": [
+      {
+        "name": "The Highlighter Rule",
+        "body": "Yellow marks the amount due and nothing else. If a second thing on the page turns yellow, the first one stops meaning \"pay this\".",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Means Late Rule",
+        "body": "Red is for money that is late (and a net worth below zero). Expenses are printed in ink with a minus sign, not in red.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Band Rule",
+        "body": "Teal owns the issuer band and the primary action. It never floods a whole region of the page.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ruled Figure Rule",
+        "body": "Every amount is set in tabular lining figures with a true minus sign (−) and explicit direction (+ for money in). Amounts align column to column.",
+        "section": "typography"
+      },
+      {
+        "name": "The Label Over Value Rule",
+        "body": "Condensed caps label a value, the way a statement labels a field. They never sit above a heading as an eyebrow.",
+        "section": "typography"
+      },
+      {
+        "name": "The Nothing Due Folds Rule",
+        "body": "On a phone, sections such as spending, interest and accounts may arrive folded, but net worth and anything due never do.",
+        "section": "layout"
+      },
+      {
+        "name": "The One Sheet Deep Rule",
+        "body": "Sheets never nest. A section inside a sheet is divided by a rule, not boxed in another card.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** set every amount through the shared Amount treatment: tabular figures, a true minus (−), and + for money in.",
+      "**Do** close totals with a single Printer's Ink rule above and a 3px double rule below.",
+      "**Do** keep label caps (11.5px, 78% width, +0.06em) for field labels and table headings only.",
+      "**Do** gate hover styles behind hover-capable pointers and give every pressable element :active feedback (scale 0.97).",
+      "**Do** keep UI motion at or under 300ms on the strong ease-out curve (cubic-bezier(0.23, 1, 0.32, 1)); bottom sheets use the drawer curve (cubic-bezier(0.32, 0.72, 0, 1)).",
+      "**Do** use lucide icons at one stroke weight for every pictogram, including the arrow between two accounts."
+    ],
+    "donts": [
+      "**Don't** put yellow anywhere except the amount due and text selection.",
+      "**Don't** colour expenses red; red means late.",
+      "**Don't** rebuild the dashboard as equal KPI tiles with a category donut; the statement ladder and the Amount Due box replace them.",
+      "**Don't** nest cards, or box a section that a rule can separate.",
+      "**Don't** place an eyebrow or kicker above a heading.",
+      "**Don't** use emoji or Unicode glyphs as icons (📎, ✕, →).",
+      "**Don't** add gradients, glass or glows; depth is one soft shadow.",
+      "**Don't** switch on dark mode by inverting these tokens; it has not been designed yet."
+    ]
+  }
+}

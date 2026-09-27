@@ -1,17 +1,20 @@
+import Checkbox from '@/Components/Checkbox';
+import EmptyState from '@/Components/EmptyState';
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
+import Stub from '@/Components/Stub';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import {
     Select,
     SelectContent,
@@ -19,22 +22,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatDate, peso, titleCase, todayISO } from '@/lib/format';
+import { titleCase, todayISO } from '@/lib/format';
 import type {
     Category,
     ScheduledTransaction,
     TransactionType,
 } from '@/types/models';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { ArrowRight, Pencil, Plus, Trash2 } from 'lucide-react';
 import { FormEvent, ReactNode, useState } from 'react';
 
 type AccountOption = { id: number; name: string; kind: string };
@@ -53,24 +49,6 @@ type FormShape = {
     is_active: boolean;
     auto_post: boolean;
 };
-
-function Field({
-    label,
-    error,
-    children,
-}: {
-    label: string;
-    error?: string;
-    children: ReactNode;
-}) {
-    return (
-        <div className="space-y-1.5">
-            <Label>{label}</Label>
-            {children}
-            {error && <p className="text-sm text-red-600">{error}</p>}
-        </div>
-    );
-}
 
 function ScheduleDialog({
     trigger,
@@ -177,9 +155,16 @@ function ScheduleDialog({
                             ? 'Edit schedule'
                             : 'New scheduled transaction'}
                     </DialogTitle>
+                    <DialogDescription>
+                        A bill, subscription or payment that repeats every month
+                        on the same day.
+                    </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={submit} className="space-y-4">
-                    <Field label="Description" error={form.errors.description}>
+                <form onSubmit={submit} className="grid gap-4">
+                    <FormField
+                        label="Description"
+                        error={form.errors.description}
+                    >
                         <Input
                             value={form.data.description}
                             onChange={(e) =>
@@ -187,17 +172,17 @@ function ScheduleDialog({
                             }
                             autoFocus
                         />
-                    </Field>
+                    </FormField>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Type" error={form.errors.type}>
+                        <FormField label="Type" error={form.errors.type}>
                             <Select
                                 value={type}
                                 onValueChange={(v) =>
                                     changeType(v as FormShape['type'])
                                 }
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -212,21 +197,22 @@ function ScheduleDialog({
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                        </Field>
-                        <Field label="Amount" error={form.errors.amount}>
+                        </FormField>
+                        <FormField label="Amount" error={form.errors.amount}>
                             <Input
                                 inputMode="decimal"
                                 placeholder="0.00"
+                                className="figures"
                                 value={form.data.amount}
                                 onChange={(e) =>
                                     form.setData('amount', e.target.value)
                                 }
                             />
-                        </Field>
+                        </FormField>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
-                        <Field
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                        <FormField
                             label="Day of month"
                             error={form.errors.day_of_month}
                         >
@@ -237,8 +223,8 @@ function ScheduleDialog({
                                     form.setData('day_of_month', e.target.value)
                                 }
                             />
-                        </Field>
-                        <Field
+                        </FormField>
+                        <FormField
                             label="Next due"
                             error={form.errors.next_due_date}
                         >
@@ -252,8 +238,8 @@ function ScheduleDialog({
                                     )
                                 }
                             />
-                        </Field>
-                        <Field
+                        </FormField>
+                        <FormField
                             label="Lead days"
                             error={form.errors.lead_time_days}
                         >
@@ -268,12 +254,12 @@ function ScheduleDialog({
                                     )
                                 }
                             />
-                        </Field>
+                        </FormField>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         {showCategory && (
-                            <Field
+                            <FormField
                                 label="Category"
                                 error={form.errors.category_id}
                             >
@@ -283,7 +269,7 @@ function ScheduleDialog({
                                         form.setData('category_id', v)
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Uncategorised" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -302,20 +288,24 @@ function ScheduleDialog({
                                             ))}
                                     </SelectContent>
                                 </Select>
-                            </Field>
+                            </FormField>
                         )}
                         {showFrom && (
-                            <Field
+                            <FormField
                                 label="From account"
                                 error={form.errors.from_account_id}
                             >
                                 <Select
-                                    value={form.data.from_account_id}
+                                    value={
+                                        form.data.from_account_id === NONE
+                                            ? ''
+                                            : form.data.from_account_id
+                                    }
                                     onValueChange={(v) =>
                                         form.setData('from_account_id', v)
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -329,20 +319,24 @@ function ScheduleDialog({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </Field>
+                            </FormField>
                         )}
                         {showTo && (
-                            <Field
+                            <FormField
                                 label="To account"
                                 error={form.errors.to_account_id}
                             >
                                 <Select
-                                    value={form.data.to_account_id}
+                                    value={
+                                        form.data.to_account_id === NONE
+                                            ? ''
+                                            : form.data.to_account_id
+                                    }
                                     onValueChange={(v) =>
                                         form.setData('to_account_id', v)
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -356,14 +350,13 @@ function ScheduleDialog({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </Field>
+                            </FormField>
                         )}
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm">
-                            <input
-                                type="checkbox"
+                    <div className="border-rule grid gap-3 border-t pt-4">
+                        <label className="flex items-center gap-2.5 text-sm">
+                            <Checkbox
                                 checked={form.data.is_active}
                                 onChange={(e) =>
                                     form.setData('is_active', e.target.checked)
@@ -371,9 +364,8 @@ function ScheduleDialog({
                             />
                             Active
                         </label>
-                        <label className="flex items-center gap-2 text-sm">
-                            <input
-                                type="checkbox"
+                        <label className="flex items-center gap-2.5 text-sm">
+                            <Checkbox
                                 checked={form.data.auto_post}
                                 onChange={(e) =>
                                     form.setData('auto_post', e.target.checked)
@@ -382,7 +374,7 @@ function ScheduleDialog({
                             Auto-post when due
                         </label>
                         {form.data.auto_post && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-ink-2 text-[0.8125rem] text-pretty">
                                 Posts itself to the ledger on its due date
                                 (catching up any missed months) and rolls
                                 forward — no need to press Post.
@@ -390,7 +382,7 @@ function ScheduleDialog({
                         )}
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="mt-2">
                         <Button type="submit" disabled={form.processing}>
                             {editing ? 'Save changes' : 'Create schedule'}
                         </Button>
@@ -398,6 +390,154 @@ function ScheduleDialog({
                 </form>
             </DialogContent>
         </Dialog>
+    );
+}
+
+/** The account line a payment stub prints: where the money leaves or lands. */
+function accountLine(item: ScheduledTransaction): ReactNode {
+    const from = item.from_account?.name;
+    const to = item.to_account?.name;
+    if (item.type === 'transfer' && from && to) {
+        return (
+            <span className="inline-flex items-center gap-1">
+                {from}
+                <ArrowRight className="size-3" aria-label="to" />
+                {to}
+            </span>
+        );
+    }
+    if (from) return `From ${from}`;
+    if (to) return `Into ${to}`;
+    return null;
+}
+
+/** One schedule as a payment stub; posting tears its slip off. */
+function ScheduleStub({
+    item,
+    accounts,
+    categories,
+}: {
+    item: ScheduledTransaction;
+    accounts: AccountOption[];
+    categories: Category[];
+}) {
+    const [tearing, setTearing] = useState(false);
+    const [busy, setBusy] = useState(false);
+
+    function post() {
+        setTearing(true);
+        setBusy(true);
+        router.post(
+            route('scheduled-transactions.post', item.id),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setTearing(false);
+                    setBusy(false);
+                },
+            },
+        );
+    }
+
+    function skip() {
+        setBusy(true);
+        router.post(
+            route('scheduled-transactions.skip', item.id),
+            {},
+            { preserveScroll: true, onFinish: () => setBusy(false) },
+        );
+    }
+
+    function destroy() {
+        if (
+            !window.confirm(
+                `Delete the schedule “${item.description}”? Transactions it already posted stay in the ledger.`,
+            )
+        ) {
+            return;
+        }
+        setBusy(true);
+        router.delete(route('scheduled-transactions.destroy', item.id), {
+            preserveScroll: true,
+            onFinish: () => setBusy(false),
+        });
+    }
+
+    return (
+        <Stub
+            title={item.description}
+            amount={item.amount}
+            dueDate={item.next_due_date}
+            incoming={item.type === 'income'}
+            paused={!item.is_active}
+            tearing={tearing}
+            meta={
+                <>
+                    {titleCase(item.type)} · every month on day{' '}
+                    {item.day_of_month}
+                    {item.category ? ` · ${item.category.name}` : ''}
+                    {accountLine(item) && (
+                        <span className="mt-0.5 block">
+                            {accountLine(item)}
+                        </span>
+                    )}
+                </>
+            }
+            stamps={
+                <>
+                    {!item.is_active && <Badge variant="outline">Paused</Badge>}
+                    {item.auto_post && (
+                        <Badge variant="secondary">Auto-post</Badge>
+                    )}
+                </>
+            }
+            actions={
+                <>
+                    <Button size="sm" onClick={post} disabled={busy}>
+                        Post
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={skip}
+                        disabled={busy}
+                        title="Skip this cycle and roll the schedule forward"
+                    >
+                        Skip
+                    </Button>
+                    <span className="ml-auto flex gap-0.5">
+                        <ScheduleDialog
+                            item={item}
+                            accounts={accounts}
+                            categories={categories}
+                            trigger={
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="text-ink-2"
+                                    aria-label={`Edit ${item.description}`}
+                                    title="Edit"
+                                >
+                                    <Pencil />
+                                </Button>
+                            }
+                        />
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-ink-2 hover:text-past-due"
+                            onClick={destroy}
+                            disabled={busy}
+                            aria-label={`Delete ${item.description}`}
+                            title="Delete"
+                        >
+                            <Trash2 />
+                        </Button>
+                    </span>
+                </>
+            }
+        />
     );
 }
 
@@ -410,8 +550,8 @@ export default function ScheduledIndex({
     accounts: AccountOption[];
     categories: Category[];
 }) {
-    const action = useForm();
-    const today = todayISO();
+    const active = scheduledTransactions.filter((s) => s.is_active);
+    const paused = scheduledTransactions.filter((s) => !s.is_active);
 
     return (
         <AuthenticatedLayout>
@@ -423,162 +563,80 @@ export default function ScheduledIndex({
                     <ScheduleDialog
                         accounts={accounts}
                         categories={categories}
-                        trigger={<Button>Add schedule</Button>}
+                        trigger={
+                            <Button>
+                                <Plus />
+                                Add schedule
+                            </Button>
+                        }
                     />
                 }
             />
 
-            <Card>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Next due</TableHead>
-                                <TableHead className="text-right">
-                                    Amount
-                                </TableHead>
-                                <TableHead className="w-1" />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {scheduledTransactions.length === 0 && (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={4}
-                                        className="py-10 text-center text-sm text-gray-500"
-                                    >
-                                        Nothing scheduled yet.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                            {scheduledTransactions.map((s) => {
-                                const overdue = s.next_due_date <= today;
-                                return (
-                                    <TableRow
-                                        key={s.id}
-                                        className={
-                                            s.is_active ? '' : 'opacity-50'
-                                        }
-                                    >
-                                        <TableCell>
-                                            <div className="font-medium">
-                                                {s.description}
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {titleCase(s.type)} · day{' '}
-                                                {s.day_of_month}
-                                                {s.category
-                                                    ? ` · ${s.category.name}`
-                                                    : ''}
-                                                {s.auto_post && (
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="ml-2 text-[10px]"
-                                                    >
-                                                        auto-post
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-sm whitespace-nowrap">
-                                            {formatDate(s.next_due_date)}
-                                            {s.is_active && overdue && (
-                                                <Badge
-                                                    variant="destructive"
-                                                    className="ml-2"
-                                                >
-                                                    due
-                                                </Badge>
-                                            )}
-                                            {!s.is_active && (
-                                                <Badge
-                                                    variant="outline"
-                                                    className="ml-2"
-                                                >
-                                                    paused
-                                                </Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-right font-medium tabular-nums">
-                                            {peso(s.amount)}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-wrap justify-end gap-1">
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    disabled={action.processing}
-                                                    onClick={() =>
-                                                        action.post(
-                                                            route(
-                                                                'scheduled-transactions.post',
-                                                                s.id,
-                                                            ),
-                                                            {
-                                                                preserveScroll: true,
-                                                            },
-                                                        )
-                                                    }
-                                                >
-                                                    Post
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        action.post(
-                                                            route(
-                                                                'scheduled-transactions.skip',
-                                                                s.id,
-                                                            ),
-                                                            {
-                                                                preserveScroll: true,
-                                                            },
-                                                        )
-                                                    }
-                                                >
-                                                    Skip
-                                                </Button>
-                                                <ScheduleDialog
-                                                    item={s}
-                                                    accounts={accounts}
-                                                    categories={categories}
-                                                    trigger={
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                    }
-                                                />
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        action.delete(
-                                                            route(
-                                                                'scheduled-transactions.destroy',
-                                                                s.id,
-                                                            ),
-                                                            {
-                                                                preserveScroll: true,
-                                                            },
-                                                        )
-                                                    }
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            {scheduledTransactions.length === 0 ? (
+                <div className="bg-paper shadow-sheet rounded-[5px] px-5">
+                    <EmptyState
+                        title="Nothing scheduled yet"
+                        action={
+                            <ScheduleDialog
+                                accounts={accounts}
+                                categories={categories}
+                                trigger={
+                                    <Button variant="outline">
+                                        <Plus />
+                                        Add your first schedule
+                                    </Button>
+                                }
+                            />
+                        }
+                    >
+                        Add the bills, subscriptions and loan payments that
+                        repeat each month. They show up on the dashboard as
+                        their due dates come near, ready to post.
+                    </EmptyState>
+                </div>
+            ) : (
+                <div className="grid gap-10">
+                    {active.length > 0 && (
+                        <section aria-label="Active schedules">
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {active.map((item) => (
+                                    <ScheduleStub
+                                        key={item.id}
+                                        item={item}
+                                        accounts={accounts}
+                                        categories={categories}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                    {paused.length > 0 && (
+                        <section aria-labelledby="paused-heading">
+                            <h2
+                                id="paused-heading"
+                                className="text-[1.0625rem] font-semibold tracking-[-0.01em]"
+                            >
+                                Paused
+                            </h2>
+                            <p className="text-ink-2 mt-1 text-sm">
+                                These stay out of the Upcoming list until you
+                                make them active again.
+                            </p>
+                            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {paused.map((item) => (
+                                    <ScheduleStub
+                                        key={item.id}
+                                        item={item}
+                                        accounts={accounts}
+                                        categories={categories}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

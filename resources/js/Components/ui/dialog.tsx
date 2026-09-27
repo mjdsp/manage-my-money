@@ -37,7 +37,7 @@ function DialogOverlay({
         <DialogPrimitive.Overlay
             data-slot="dialog-overlay"
             className={cn(
-                'data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs',
+                'data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 fixed inset-0 isolate z-50 bg-[oklch(0.222_0.012_237/0.32)] duration-200 ease-out data-closed:duration-150',
                 className,
             )}
             {...props}
@@ -45,6 +45,10 @@ function DialogOverlay({
     );
 }
 
+/**
+ * A sheet laid over the statement. On a phone it rises from the bottom edge
+ * like a native sheet; from `sm` up it sits centred and fades in.
+ */
 function DialogContent({
     className,
     children,
@@ -59,17 +63,27 @@ function DialogContent({
             <DialogPrimitive.Content
                 data-slot="dialog-content"
                 className={cn(
-                    'bg-popover text-popover-foreground ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl p-4 text-sm ring-1 duration-100 outline-none sm:max-w-sm',
+                    'bg-popover text-popover-foreground shadow-pop fixed z-50 grid w-full gap-5 text-sm outline-none',
+                    // Phone: a bottom sheet.
+                    'inset-x-0 bottom-0 max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-2xl px-5 pt-6 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]',
+                    'data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom data-open:ease-drawer duration-300 data-closed:duration-200 data-closed:ease-out',
+                    // From sm: a centred sheet.
+                    'sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:max-h-[min(88dvh,52rem)] sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:px-6 sm:pt-6 sm:pb-6',
+                    'sm:data-open:slide-in-from-bottom-0 sm:data-closed:slide-out-to-bottom-0 sm:data-open:fade-in-0 sm:data-open:zoom-in-[0.97] sm:data-closed:fade-out-0 sm:data-closed:zoom-out-[0.97] sm:duration-200 sm:data-closed:duration-150 sm:data-open:ease-out',
                     className,
                 )}
                 {...props}
             >
+                <span
+                    aria-hidden
+                    className="bg-rule absolute top-2 left-1/2 h-1 w-9 -translate-x-1/2 rounded-full sm:hidden"
+                />
                 {children}
                 {showCloseButton && (
                     <DialogPrimitive.Close data-slot="dialog-close" asChild>
                         <Button
                             variant="ghost"
-                            className="absolute top-2 right-2"
+                            className="text-ink-2 absolute top-3 right-3"
                             size="icon-sm"
                         >
                             <XIcon />
@@ -86,7 +100,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
     return (
         <div
             data-slot="dialog-header"
-            className={cn('flex flex-col gap-2', className)}
+            className={cn('flex flex-col gap-1.5 pr-8', className)}
             {...props}
         />
     );
@@ -104,7 +118,7 @@ function DialogFooter({
         <div
             data-slot="dialog-footer"
             className={cn(
-                'bg-muted/50 -mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t p-4 sm:flex-row sm:justify-end',
+                'border-rule -mx-5 flex flex-col-reverse gap-2 border-t px-5 pt-4 sm:-mx-6 sm:flex-row sm:items-center sm:justify-end sm:px-6',
                 className,
             )}
             {...props}
@@ -127,7 +141,7 @@ function DialogTitle({
         <DialogPrimitive.Title
             data-slot="dialog-title"
             className={cn(
-                'font-heading text-base leading-none font-medium',
+                'font-heading text-lg leading-tight font-semibold tracking-[-0.015em]',
                 className,
             )}
             {...props}
@@ -143,7 +157,7 @@ function DialogDescription({
         <DialogPrimitive.Description
             data-slot="dialog-description"
             className={cn(
-                'text-muted-foreground *:[a]:hover:text-foreground text-sm *:[a]:underline *:[a]:underline-offset-3',
+                'text-ink-2 *:[a]:hover:text-ink text-sm text-pretty *:[a]:underline *:[a]:underline-offset-3',
                 className,
             )}
             {...props}

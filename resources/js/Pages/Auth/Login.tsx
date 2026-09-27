@@ -29,82 +29,85 @@ export default function Login({
     };
 
     return (
-        <GuestLayout>
+        <GuestLayout
+            title="Log in"
+            description="Pick up where your statement left off."
+        >
             <Head title="Log in" />
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <p className="bg-credit-tint text-credit mb-6 rounded-md px-3 py-2.5 text-sm font-medium">
                     {status}
-                </div>
+                </p>
             )}
 
-            <form onSubmit={submit}>
-                <div>
+            <form onSubmit={submit} className="grid gap-5">
+                <div className="grid gap-1.5">
                     <InputLabel htmlFor="email" value="Email" />
-
                     <TextInput
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full"
                         autoComplete="username"
+                        autoCapitalize="none"
                         isFocused={true}
                         onChange={(e) => setData('email', e.target.value)}
                     />
-
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.email} />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
+                <div className="grid gap-1.5">
+                    <div className="flex items-baseline justify-between gap-3">
+                        <InputLabel htmlFor="password" value="Password" />
+                        {canResetPassword && (
+                            <Link
+                                href={route('password.request')}
+                                className="text-band text-[0.8125rem] font-semibold hover:underline"
+                            >
+                                Forgot your password?
+                            </Link>
+                        )}
+                    </div>
                     <TextInput
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
-                <div className="mt-4 block">
-                    <label className="flex items-center">
-                        <Checkbox
-                            name="remember"
-                            checked={data.remember}
-                            onChange={(e) =>
-                                setData(
-                                    'remember',
-                                    (e.target.checked || false) as false,
-                                )
-                            }
-                        />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
-                    </label>
-                </div>
+                <label className="flex items-center gap-2.5">
+                    <Checkbox
+                        name="remember"
+                        checked={data.remember}
+                        onChange={(e) =>
+                            setData(
+                                'remember',
+                                (e.target.checked || false) as false,
+                            )
+                        }
+                    />
+                    <span className="text-ink-2 text-sm">Remember me</span>
+                </label>
 
-                <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-                        >
-                            Forgot your password?
-                        </Link>
-                    )}
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
-                </div>
+                <PrimaryButton className="mt-1 w-full" disabled={processing}>
+                    Log in
+                </PrimaryButton>
             </form>
+
+            <p className="border-rule text-ink-2 mt-7 border-t pt-5 text-center text-sm">
+                New here?{' '}
+                <Link
+                    href={route('register')}
+                    className="text-band font-semibold hover:underline"
+                >
+                    Create an account
+                </Link>
+            </p>
         </GuestLayout>
     );
 }

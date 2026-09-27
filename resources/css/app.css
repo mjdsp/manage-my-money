@@ -1,29 +1,88 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/archivo/wdth.css';
 
+/* Nothing switches the app to dark yet; keep `dark:` utilities scoped to an
+   explicit .dark class so an OS dark setting can't restyle a light page. */
 @custom-variant dark (&:is(.dark *));
 @plugin '@tailwindcss/forms';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
-@theme inline {
+/*
+ * The Statement: money issued like a statement of account. White sheets on a
+ * cool desk, one teal issuer band, highlighter yellow reserved for the amount
+ * due, red only for what is past due.
+ */
+
+@theme {
+    --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+    --shadow-sheet:
+        0 0 0 1px oklch(0.222 0.012 237 / 0.07),
+        0 1px 2px oklch(0.222 0.012 237 / 0.06),
+        0 12px 28px -16px oklch(0.222 0.012 237 / 0.22);
+    --shadow-stub:
+        0 0 0 1px oklch(0.222 0.012 237 / 0.08),
+        0 1px 2px oklch(0.222 0.012 237 / 0.06);
+    --shadow-pop:
+        0 0 0 1px oklch(0.222 0.012 237 / 0.08),
+        0 4px 10px -4px oklch(0.222 0.012 237 / 0.12),
+        0 20px 44px -16px oklch(0.222 0.012 237 / 0.32);
+
+    --animate-stub-tear: stub-tear 240ms var(--ease-out) forwards;
+    --animate-fold-open: fold-open 200ms var(--ease-out);
+
+    @keyframes stub-tear {
+        to {
+            opacity: 0;
+            transform: translateY(14px) rotate(-1.25deg);
+        }
+    }
+
+    @keyframes fold-open {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+    }
+}
+
+@theme inline {
+    --color-desk: var(--desk);
+    --color-paper: var(--paper);
+    --color-ink: var(--ink);
+    --color-ink-2: var(--ink-2);
+    --color-ink-3: var(--ink-3);
+    --color-rule: var(--rule);
+    --color-rule-soft: var(--rule-soft);
+    --color-band: var(--band);
+    --color-band-hover: var(--band-hover);
+    --color-band-ink: var(--band-ink);
+    --color-band-ink-2: var(--band-ink-2);
+    --color-band-tint: var(--band-tint);
+    --color-due: var(--due);
+    --color-due-ink: var(--due-ink);
+    --color-past-due: var(--past-due);
+    --color-past-due-tint: var(--past-due-tint);
+    --color-credit: var(--credit);
+    --color-credit-tint: var(--credit-tint);
+
     --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-chart-6: var(--chart-6);
+    --color-chart-7: var(--chart-7);
+    --color-chart-8: var(--chart-8);
+
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -42,92 +101,217 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+
+    --radius-sm: calc(var(--radius) * 0.5);
+    --radius-md: var(--radius);
+    --radius-lg: calc(var(--radius) * 1.34);
+    --radius-xl: calc(var(--radius) * 2);
+    --radius-2xl: calc(var(--radius) * 2.67);
+    --radius-3xl: calc(var(--radius) * 3.34);
+    --radius-4xl: calc(var(--radius) * 4);
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-}
+    /* Ground and paper */
+    --desk: oklch(0.945 0.005 197.1);
+    --paper: oklch(1 0 0);
+    --rule: oklch(0.899 0.008 207.1);
+    --rule-soft: oklch(0.939 0.005 197.1);
 
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    /* Printing inks */
+    --ink: oklch(0.222 0.012 237.3);
+    --ink-2: oklch(0.486 0.02 242.7);
+    --ink-3: oklch(0.528 0.018 239.4);
+
+    /* The issuer band */
+    --band: oklch(0.394 0.063 210.5);
+    --band-hover: oklch(0.35 0.056 211.2);
+    --band-ink: oklch(1 0 0);
+    --band-ink-2: oklch(0.819 0.037 205.2);
+    --band-tint: oklch(0.943 0.013 202.9);
+
+    /* Reserved meanings */
+    --due: oklch(0.953 0.093 98.6);
+    --due-ink: oklch(0.423 0.087 96.2);
+    --past-due: oklch(0.54 0.198 29);
+    --past-due-tint: oklch(0.95 0.019 25.6);
+    --credit: oklch(0.514 0.115 155.8);
+    --credit-tint: oklch(0.949 0.017 159.1);
+
+    /* Spot inks for category charts; each clears 4.5:1 on paper */
+    --chart-1: oklch(0.394 0.063 210.5);
+    --chart-2: oklch(0.541 0.111 87.7);
+    --chart-3: oklch(0.486 0.02 242.7);
+    --chart-4: oklch(0.554 0.078 204.3);
+    --chart-5: oklch(0.515 0.106 36.5);
+    --chart-6: oklch(0.468 0.099 294.1);
+    --chart-7: oklch(0.529 0.121 133.8);
+    --chart-8: oklch(0.531 0.077 340);
+
+    /* shadcn roles, mapped onto the statement */
+    --background: var(--desk);
+    --foreground: var(--ink);
+    --card: var(--paper);
+    --card-foreground: var(--ink);
+    --popover: var(--paper);
+    --popover-foreground: var(--ink);
+    --primary: var(--band);
+    --primary-foreground: var(--band-ink);
+    --secondary: var(--band-tint);
+    --secondary-foreground: var(--band);
+    --muted: oklch(0.967 0.004 197);
+    --muted-foreground: var(--ink-2);
+    --accent: var(--band-tint);
+    --accent-foreground: var(--ink);
+    --destructive: var(--past-due);
+    --border: var(--rule);
+    --input: oklch(0.663 0.015 226.7);
+    --ring: var(--band);
+
+    --radius: 0.375rem;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  body {
-    @apply bg-background text-foreground;
+
+    html {
+        @apply font-sans;
+        background-color: var(--desk);
+        color-scheme: light;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-text-size-adjust: 100%;
+        scrollbar-color: oklch(0.795 0.012 217.6) transparent;
     }
-  html {
-    @apply font-sans;
+
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-optical-sizing: auto;
+    }
+
+    ::selection {
+        background-color: var(--due);
+        color: var(--ink);
+    }
+
+    input,
+    textarea {
+        caret-color: var(--band);
+    }
+
+    a {
+        text-underline-offset: 3px;
+        text-decoration-thickness: 1px;
+    }
+
+    :where(:focus-visible) {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+
+    button,
+    a,
+    summary,
+    [role='button'] {
+        touch-action: manipulation;
+    }
+
+    button,
+    [role='button'],
+    [role='tab'],
+    [role='menuitem'] {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    [type='checkbox'] {
+        color: var(--band);
+        border-color: var(--input);
+    }
+
+    [type='checkbox']:focus {
+        --tw-ring-color: var(--ring);
+    }
+
+    /* iOS zooms into any input under 16px and never zooms back out. */
+    @media (pointer: coarse) {
+        input,
+        select,
+        textarea {
+            font-size: 16px;
+        }
+    }
+}
+
+/* Tabular, lining figures: every amount lines up with the one above it. */
+@utility figures {
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* The statement's field labels: condensed caps over a value, never over a heading. */
+@utility label-caps {
+    font-size: 0.71875rem;
+    line-height: 1rem;
+    font-weight: 600;
+    font-stretch: 78%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Accounting total: two thin rules under the grand total. */
+@utility rule-double {
+    border-bottom: 3px double var(--ink);
+}
+
+/* A row of perforation holes, the line a stub tears along. */
+@utility perforation {
+    height: 3px;
+    background-image: radial-gradient(
+        circle at center,
+        oklch(0.663 0.015 226.7) 1.1px,
+        transparent 1.4px
+    );
+    background-size: 7px 3px;
+    background-repeat: repeat-x;
+    background-position: left center;
+}
+
+/* A stub's outline follows its notches, so it is a drop-shadow, not a box-shadow. */
+@utility stub-shadow {
+    filter: drop-shadow(0 0 0.5px oklch(0.222 0.012 237 / 0.34))
+        drop-shadow(0 1px 1.5px oklch(0.222 0.012 237 / 0.08));
+}
+
+/* Half-notches: the upper part is cut at its bottom corners, the tear-off at
+   its top corners, so together they meet in a round notch at the perforation. */
+@utility notch-bottom {
+    mask:
+        radial-gradient(circle 6px at 0 100%, #0000 95%, #000) left / 51% 100%
+            no-repeat,
+        radial-gradient(circle 6px at 100% 100%, #0000 95%, #000) right / 51%
+            100% no-repeat;
+}
+
+@utility notch-top {
+    mask:
+        radial-gradient(circle 6px at 0 0, #0000 95%, #000) left / 51% 100%
+            no-repeat,
+        radial-gradient(circle 6px at 100% 0, #0000 95%, #000) right / 51% 100%
+            no-repeat;
+}
+
+/* Reduced motion keeps the meaning of a change and drops the movement. */
+@media (prefers-reduced-motion: reduce) {
+    @keyframes stub-tear {
+        to {
+            opacity: 0;
+        }
+    }
+
+    @keyframes fold-open {
+        from {
+            opacity: 0;
+        }
     }
 }
