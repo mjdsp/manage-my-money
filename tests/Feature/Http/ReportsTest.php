@@ -34,7 +34,88 @@ it('renders the dashboard with computed data', function () {
             ->component('Dashboard')
             ->has('data.netPosition')
             ->has('data.thisMonth')
-            ->has('data.spendingByCategory'));
+            ->has('data.spendingByCategory')
+            ->has('data.passiveIncome')
+            ->has('data.interestPaid'));
+});
+
+it('lists the monthly interest on money owed to you as passive income', function () {
+    $lend = function (array $attributes) {
+        $account = Account::factory()->for($this->user)->receivable()->create($attributes);
+        $this->ledger->recordOpeningBalance($account, $account->starting_principal, '2026-08-01');
+
+        return $account;
+    };
+
+    // ₱3,600 of interest spread over a 12-month term: ₱300 a month.
+    $lend(['name' => 'Lent to Ana', 'starting_principal' => 1_200_000, 'total_repayment' => 1_560_000, 'term_months' => 12]);
+    // No total saved: amount × monthly rate (₱10,000 × 5%).
+    $lend(['name' => 'Lent to Jun', 'starting_principal' => 1_000_000, 'monthly_interest_rate' => 5]);
+
+    // Left out: no interest known, fully collected, archived, and interest you pay rather than earn.
+    $lend(['name' => 'Interest-free']);
+    $repaid = $lend(['name' => 'Repaid', 'starting_principal' => 100_000, 'total_repayment' => 110_000, 'term_months' => 1]);
+    $this->ledger->post($this->user, [
+        'type' => TransactionType::Transfer, 'amount' => Money::ofPesos('1100'),
+        'date' => '2026-08-20', 'from_account_id' => $repaid->id, 'to_account_id' => $this->bank->id,
+    ]);
+    Account::factory()->for($this->user)->receivable()->archived()->create([
+        'starting_principal' => 100_000, 'total_repayment' => 110_000, 'term_months' => 1,
+    ]);
+    Account::factory()->for($this->user)->liability()->create();
+
+    $this->actingAs($this->user)
+        ->get(route('dashboard'))
+        ->assertInertia(function ($page) {
+            $rows = collect($page->toArray()['props']['data']['passiveIncome']);
+
+            expect($rows->pluck('name')->all())->toBe(['Lent to Jun', 'Lent to Ana'])
+                ->and($rows->pluck('amount.cents')->all())->toBe([50_000, 30_000])
+                ->and($rows->pluck('pct')->all())->toBe([62.5, 37.5]);
+        });
+});
+
+it('lists the monthly interest you pay on your debts', function () {
+    $borrow = function (array $attributes) {
+        $account = Account::factory()->for($this->user)->liability()->create([
+            'monthly_interest_rate' => null,
+            'total_repayment' => null,
+            'term_months' => null,
+            ...$attributes,
+        ]);
+        $this->ledger->recordOpeningBalance($account, $account->starting_principal, '2026-08-01');
+
+        return $account;
+    };
+
+    // ₱2,400 of interest spread over a 6-month term: ₱400 a month.
+    $borrow(['name' => 'Phone plan', 'starting_principal' => 600_000, 'total_repayment' => 840_000, 'term_months' => 6]);
+    // No total saved: amount borrowed × monthly rate (₱20,000 × 3%).
+    $borrow(['name' => 'Salary loan', 'starting_principal' => 2_000_000, 'monthly_interest_rate' => 3]);
+
+    // Left out: no interest known, fully paid off, archived, and interest you earn rather than pay.
+    $borrow(['name' => 'Interest-free']);
+    $paidOff = $borrow(['name' => 'Paid off', 'starting_principal' => 100_000, 'total_repayment' => 110_000, 'term_months' => 1]);
+    $this->ledger->post($this->user, [
+        'type' => TransactionType::Transfer, 'amount' => Money::ofPesos('1100'),
+        'date' => '2026-08-20', 'from_account_id' => $this->bank->id, 'to_account_id' => $paidOff->id,
+    ]);
+    Account::factory()->for($this->user)->liability()->archived()->create([
+        'starting_principal' => 100_000, 'total_repayment' => 110_000, 'term_months' => 1,
+    ]);
+    Account::factory()->for($this->user)->receivable()->create([
+        'starting_principal' => 100_000, 'total_repayment' => 110_000, 'term_months' => 1,
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('dashboard'))
+        ->assertInertia(function ($page) {
+            $rows = collect($page->toArray()['props']['data']['interestPaid']);
+
+            expect($rows->pluck('name')->all())->toBe(['Salary loan', 'Phone plan'])
+                ->and($rows->pluck('amount.cents')->all())->toBe([60_000, 40_000])
+                ->and($rows->pluck('pct')->all())->toEqual([60, 40]);
+        });
 });
 
 it('builds a monthly report whose category totals reconcile with the summary', function () {
