@@ -1,23 +1,26 @@
+import Amount from '@/Components/Amount';
+import EmptyState from '@/Components/EmptyState';
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/Components/ui/card';
+import { Card, CardContent } from '@/Components/ui/card';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/Components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import {
     Select,
     SelectContent,
@@ -25,19 +28,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, peso } from '@/lib/format';
 import type { Account, AccountKind } from '@/types/models';
 import { Head, useForm } from '@inertiajs/react';
+import {
+    Archive,
+    ArchiveRestore,
+    Ellipsis,
+    Pencil,
+    Plus,
+    Trash2,
+} from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
+
+const NONE = 'none';
 
 type FormShape = {
     name: string;
@@ -52,6 +57,7 @@ type FormShape = {
     term_months: string;
     scheduled_payment: string;
     total_repayment: string;
+    deposit_account_id: string;
     is_archived: boolean;
 };
 
@@ -68,6 +74,7 @@ const blank: FormShape = {
     term_months: '',
     scheduled_payment: '',
     total_repayment: '',
+    deposit_account_id: NONE,
     is_archived: false,
 };
 
@@ -125,9 +132,12 @@ function repaymentPlan(
 function AccountDialog({
     account,
     trigger,
+    depositAccounts = [],
 }: {
     account?: Account;
     trigger: React.ReactNode;
+    /** Where a new loan's money can be paid into (active assets). */
+    depositAccounts?: Account[];
 }) {
     const [open, setOpen] = useState(false);
     const editing = Boolean(account);
@@ -171,6 +181,15 @@ function AccountDialog({
         : toNumber(form.data.opening_balance);
     const months = toNumber(form.data.term_months);
     const lock = (field: DeriveMode) => derive !== 'manual' && derive !== field;
+
+    // A new loan's money can land in one of the user's asset accounts.
+    const canDeposit = !editing && isLiability && depositAccounts.length > 0;
+    const depositTo = depositAccounts.find(
+        (a) => String(a.id) === form.data.deposit_account_id,
+    );
+    const depositHint = depositTo
+        ? `${principalPesos > 0 ? peso(Math.round(principalPesos * 100)) : 'The starting balance'} goes into ${depositTo.name} as loan proceeds.`
+        : 'Choose the account the lender sent the money to and the amount is added there too. Skip it for a debt whose money is already spent.';
 
     // When a driver field is chosen, keep the other two in sync.
     useEffect(() => {
@@ -220,6 +239,13 @@ function AccountDialog({
         if (editing) {
             form.put(route('accounts.update', account!.id), opts);
         } else {
+            form.transform((data) => ({
+                ...data,
+                deposit_account_id:
+                    canDeposit && data.deposit_account_id !== NONE
+                        ? data.deposit_account_id
+                        : '',
+            }));
             form.post(route('accounts.store'), opts);
         }
     }
@@ -232,9 +258,14 @@ function AccountDialog({
                     <DialogTitle>
                         {editing ? 'Edit account' : 'New account'}
                     </DialogTitle>
+                    <DialogDescription>
+                        {editing
+                            ? 'Balances come from the ledger; this changes the details around them.'
+                            : 'Somewhere you keep money, a debt you are paying, or money someone owes you.'}
+                    </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={submit} className="space-y-4">
-                    <Field label="Name" error={form.errors.name}>
+                <form onSubmit={submit} className="grid gap-4">
+                    <FormField label="Name" error={form.errors.name}>
                         <Input
                             value={form.data.name}
                             onChange={(e) =>
@@ -242,18 +273,18 @@ function AccountDialog({
                             }
                             autoFocus
                         />
-                    </Field>
+                    </FormField>
 
                     {!editing && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <Field label="Kind" error={form.errors.kind}>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField label="Kind" error={form.errors.kind}>
                                 <Select
                                     value={form.data.kind}
                                     onValueChange={(v) =>
                                         form.setData('kind', v as AccountKind)
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -269,14 +300,15 @@ function AccountDialog({
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                            </Field>
-                            <Field
+                            </FormField>
+                            <FormField
                                 label={hasPlan ? owedLabel : 'Opening balance'}
                                 error={form.errors.opening_balance}
                             >
                                 <Input
                                     inputMode="decimal"
                                     placeholder="0.00"
+                                    className="figures"
                                     value={form.data.opening_balance}
                                     onChange={(e) =>
                                         form.setData(
@@ -285,13 +317,45 @@ function AccountDialog({
                                         )
                                     }
                                 />
-                            </Field>
+                            </FormField>
                         </div>
+                    )}
+
+                    {canDeposit && (
+                        <FormField
+                            label="Deposited into"
+                            error={form.errors.deposit_account_id}
+                            hint={depositHint}
+                        >
+                            <Select
+                                value={form.data.deposit_account_id}
+                                onValueChange={(v) =>
+                                    form.setData('deposit_account_id', v)
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={NONE}>
+                                        Don&apos;t add it to an account
+                                    </SelectItem>
+                                    {depositAccounts.map((a) => (
+                                        <SelectItem
+                                            key={a.id}
+                                            value={String(a.id)}
+                                        >
+                                            {a.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </FormField>
                     )}
 
                     {!hasPlan && (
                         <div className="grid grid-cols-2 gap-4">
-                            <Field
+                            <FormField
                                 label="Bank name"
                                 error={form.errors.bank_name}
                             >
@@ -304,13 +368,14 @@ function AccountDialog({
                                         )
                                     }
                                 />
-                            </Field>
-                            <Field
+                            </FormField>
+                            <FormField
                                 label="Interest rate % (annual)"
                                 error={form.errors.interest_rate}
                             >
                                 <Input
                                     inputMode="decimal"
+                                    className="figures"
                                     value={form.data.interest_rate}
                                     onChange={(e) =>
                                         form.setData(
@@ -319,14 +384,14 @@ function AccountDialog({
                                         )
                                     }
                                 />
-                            </Field>
+                            </FormField>
                         </div>
                     )}
 
                     {hasPlan && (
                         <>
                             <div className="grid grid-cols-2 gap-4">
-                                <Field
+                                <FormField
                                     label={personLabel}
                                     error={form.errors.lender}
                                 >
@@ -339,13 +404,14 @@ function AccountDialog({
                                             )
                                         }
                                     />
-                                </Field>
-                                <Field
+                                </FormField>
+                                <FormField
                                     label="Due day of month"
                                     error={form.errors.due_day_of_month}
                                 >
                                     <Input
                                         inputMode="numeric"
+                                        className="figures"
                                         value={form.data.due_day_of_month}
                                         onChange={(e) =>
                                             form.setData(
@@ -354,11 +420,11 @@ function AccountDialog({
                                             )
                                         }
                                     />
-                                </Field>
+                                </FormField>
                             </div>
 
                             {isReceivable && (
-                                <Field
+                                <FormField
                                     label="Date borrowed"
                                     error={form.errors.borrowed_on}
                                 >
@@ -372,127 +438,138 @@ function AccountDialog({
                                             )
                                         }
                                     />
-                                </Field>
+                                </FormField>
                             )}
 
-                            <Field label="Auto-fill the repayment plan from">
-                                <Select
-                                    value={derive}
-                                    onValueChange={(v) =>
-                                        setDerive(v as DeriveMode)
+                            <div className="border-rule grid gap-4 border-t pt-4">
+                                <FormField
+                                    label="Auto-fill the repayment plan from"
+                                    hint={
+                                        derive !== 'manual'
+                                            ? `Flat / add-on interest. Fill in${
+                                                  editing
+                                                      ? ' the term'
+                                                      : ` ${owedLabel.toLowerCase()} and term`
+                                              }, plus the field above — the other two are calculated.`
+                                            : undefined
                                     }
                                 >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="manual">
-                                            Manual entry
-                                        </SelectItem>
-                                        <SelectItem value="rate">
-                                            Monthly interest %
-                                        </SelectItem>
-                                        <SelectItem value="payment">
-                                            Monthly payment
-                                        </SelectItem>
-                                        <SelectItem value="total">
-                                            {isReceivable
+                                    <Select
+                                        value={derive}
+                                        onValueChange={(v) =>
+                                            setDerive(v as DeriveMode)
+                                        }
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="manual">
+                                                Manual entry
+                                            </SelectItem>
+                                            <SelectItem value="rate">
+                                                Monthly interest %
+                                            </SelectItem>
+                                            <SelectItem value="payment">
+                                                Monthly payment
+                                            </SelectItem>
+                                            <SelectItem value="total">
+                                                {isReceivable
+                                                    ? 'Total to be repaid to you'
+                                                    : 'Total amount to be paid'}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormField>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        label="Term (months)"
+                                        error={form.errors.term_months}
+                                    >
+                                        <Input
+                                            inputMode="numeric"
+                                            className="figures"
+                                            value={form.data.term_months}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'term_months',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </FormField>
+                                    <FormField
+                                        label="Monthly interest %"
+                                        error={
+                                            form.errors.monthly_interest_rate
+                                        }
+                                    >
+                                        <Input
+                                            inputMode="decimal"
+                                            className="figures"
+                                            disabled={lock('rate')}
+                                            value={
+                                                form.data.monthly_interest_rate
+                                            }
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'monthly_interest_rate',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </FormField>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        label={
+                                            isReceivable
+                                                ? 'Monthly repayment'
+                                                : 'Monthly payment'
+                                        }
+                                        error={form.errors.scheduled_payment}
+                                    >
+                                        <Input
+                                            inputMode="decimal"
+                                            className="figures"
+                                            disabled={lock('payment')}
+                                            value={form.data.scheduled_payment}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'scheduled_payment',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </FormField>
+                                    <FormField
+                                        label={
+                                            isReceivable
                                                 ? 'Total to be repaid to you'
-                                                : 'Total amount to be paid'}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </Field>
-                            {derive !== 'manual' && (
-                                <p className="text-xs text-gray-500">
-                                    Flat / add-on interest. Fill in
-                                    {editing
-                                        ? ' the term'
-                                        : ` ${owedLabel.toLowerCase()} and term`}
-                                    , plus the field above — the other two are
-                                    calculated.
-                                </p>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <Field
-                                    label="Term (months)"
-                                    error={form.errors.term_months}
-                                >
-                                    <Input
-                                        inputMode="numeric"
-                                        value={form.data.term_months}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'term_months',
-                                                e.target.value,
-                                            )
+                                                : 'Total amount to be paid'
                                         }
-                                    />
-                                </Field>
-                                <Field
-                                    label="Monthly interest %"
-                                    error={form.errors.monthly_interest_rate}
-                                >
-                                    <Input
-                                        inputMode="decimal"
-                                        disabled={lock('rate')}
-                                        value={form.data.monthly_interest_rate}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'monthly_interest_rate',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </Field>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <Field
-                                    label={
-                                        isReceivable
-                                            ? 'Monthly repayment'
-                                            : 'Monthly payment'
-                                    }
-                                    error={form.errors.scheduled_payment}
-                                >
-                                    <Input
-                                        inputMode="decimal"
-                                        disabled={lock('payment')}
-                                        value={form.data.scheduled_payment}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'scheduled_payment',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </Field>
-                                <Field
-                                    label={
-                                        isReceivable
-                                            ? 'Total to be repaid to you'
-                                            : 'Total amount to be paid'
-                                    }
-                                    error={form.errors.total_repayment}
-                                >
-                                    <Input
-                                        inputMode="decimal"
-                                        disabled={lock('total')}
-                                        value={form.data.total_repayment}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'total_repayment',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </Field>
+                                        error={form.errors.total_repayment}
+                                    >
+                                        <Input
+                                            inputMode="decimal"
+                                            className="figures"
+                                            disabled={lock('total')}
+                                            value={form.data.total_repayment}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'total_repayment',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </FormField>
+                                </div>
                             </div>
                         </>
                     )}
 
-                    <DialogFooter>
+                    <DialogFooter className="mt-2">
                         <Button type="submit" disabled={form.processing}>
                             {editing ? 'Save changes' : 'Create account'}
                         </Button>
@@ -503,34 +580,51 @@ function AccountDialog({
     );
 }
 
-function Field({
-    label,
-    error,
-    children,
-}: {
-    label: string;
-    error?: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="space-y-1.5">
-            <Label>{label}</Label>
-            {children}
-            {error && <p className="text-sm text-red-600">{error}</p>}
-        </div>
-    );
+/** "3.000" -> "3", "6.052" -> "6.052": rates as a person would write them. */
+function rate(value: string): string {
+    const n = Number(value);
+    return Number.isFinite(n) ? String(n) : value;
 }
 
-function AccountTable({
+/** The small print under an account's name. */
+function accountDetails(account: Account): string {
+    const parts =
+        account.kind === 'asset'
+            ? [
+                  account.bank_name,
+                  account.interest_rate &&
+                      `${rate(account.interest_rate)}% a year`,
+              ]
+            : [
+                  account.lender,
+                  account.borrowed_on &&
+                      `borrowed ${formatDate(account.borrowed_on)}`,
+                  account.monthly_interest_rate &&
+                      `${rate(account.monthly_interest_rate)}% / mo`,
+                  account.term_months && `${account.term_months} mo term`,
+                  account.due_day_of_month &&
+                      `due day ${account.due_day_of_month}`,
+                  account.total_repayment &&
+                      `${peso(account.total_repayment)} ${account.kind === 'receivable' ? 'to collect' : 'to repay'}`,
+              ];
+    return parts.filter(Boolean).join(' · ');
+}
+
+function AccountSection({
     title,
     description,
+    totalLabel,
     accounts,
 }: {
     title: string;
     description: string;
+    totalLabel: string;
     accounts: Account[];
 }) {
     const form = useForm();
+    const total = accounts
+        .filter((a) => !a.is_archived)
+        .reduce((sum, a) => sum + (a.balance?.cents ?? 0), 0);
 
     function archive(account: Account) {
         form.patch(route('accounts.archive', account.id), {
@@ -558,130 +652,148 @@ function AccountTable({
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
-            </CardHeader>
             <CardContent>
+                <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                    <div>
+                        <h2 className="text-[1.0625rem] font-semibold tracking-[-0.01em]">
+                            {title}
+                        </h2>
+                        <p className="text-ink-2 mt-0.5 text-sm">
+                            {description}
+                        </p>
+                    </div>
+                    <span className="text-ink-2 text-sm">
+                        {accounts.length}{' '}
+                        {accounts.length === 1 ? 'account' : 'accounts'}
+                    </span>
+                </header>
+
                 {accounts.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-gray-500">
+                    <p className="text-ink-2 border-rule mt-4 border-t py-6 text-center text-sm">
                         Nothing here yet.
                     </p>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Details</TableHead>
-                                <TableHead className="text-right">
-                                    Balance
-                                </TableHead>
-                                <TableHead className="w-1" />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {accounts.map((account) => (
-                                <TableRow
-                                    key={account.id}
-                                    className={
-                                        account.is_archived ? 'opacity-50' : ''
-                                    }
-                                >
-                                    <TableCell className="font-medium">
-                                        {account.name}
-                                        {account.is_archived && (
-                                            <Badge
-                                                variant="outline"
-                                                className="ml-2"
-                                            >
-                                                archived
-                                            </Badge>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-sm text-gray-500">
-                                        {account.kind === 'asset'
-                                            ? [
-                                                  account.bank_name,
-                                                  account.interest_rate &&
-                                                      `${account.interest_rate}%`,
-                                              ]
-                                                  .filter(Boolean)
-                                                  .join(' · ') || '—'
-                                            : [
-                                                  account.lender,
-                                                  account.borrowed_on &&
-                                                      `borrowed ${formatDate(account.borrowed_on)}`,
-                                                  account.monthly_interest_rate &&
-                                                      `${account.monthly_interest_rate}% / mo`,
-                                                  account.term_months &&
-                                                      `${account.term_months} mo term`,
-                                                  account.due_day_of_month &&
-                                                      `due day ${account.due_day_of_month}`,
-                                                  account.total_repayment &&
-                                                      `${peso(account.total_repayment)} ${account.kind === 'receivable' ? 'to collect' : 'to repay'}`,
-                                              ]
-                                                  .filter(Boolean)
-                                                  .join(' · ') || '—'}
-                                    </TableCell>
-                                    <TableCell className="text-right font-medium tabular-nums">
-                                        {peso(account.balance)}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-wrap justify-end gap-1">
+                    <>
+                        <ul className="border-ink divide-rule mt-4 divide-y border-t">
+                            {accounts.map((account) => {
+                                const details = accountDetails(account);
+                                return (
+                                    <li
+                                        key={account.id}
+                                        className="flex items-center gap-3 py-3"
+                                    >
+                                        <div
+                                            className={
+                                                account.is_archived
+                                                    ? 'min-w-0 flex-1 opacity-60'
+                                                    : 'min-w-0 flex-1'
+                                            }
+                                        >
+                                            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
+                                                <span className="flex min-w-0 items-center gap-2">
+                                                    <span className="truncate text-[0.9375rem] font-semibold">
+                                                        {account.name}
+                                                    </span>
+                                                    {account.is_archived && (
+                                                        <Badge variant="outline">
+                                                            Archived
+                                                        </Badge>
+                                                    )}
+                                                </span>
+                                                <Amount
+                                                    value={account.balance}
+                                                    size="md"
+                                                    className="ml-auto"
+                                                />
+                                            </div>
+                                            {details && (
+                                                <p className="text-ink-2 mt-0.5 text-[0.8125rem] text-pretty">
+                                                    {details}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex w-[4.125rem] shrink-0 justify-end gap-0.5 pointer-coarse:w-[5.125rem]">
                                             <AccountDialog
                                                 account={account}
                                                 trigger={
                                                     <Button
                                                         variant="ghost"
-                                                        size="sm"
+                                                        size="icon-sm"
+                                                        className="text-ink-2"
+                                                        aria-label={`Edit ${account.name}`}
+                                                        title="Edit"
                                                     >
-                                                        Edit
+                                                        <Pencil />
                                                     </Button>
                                                 }
                                             />
-                                            {account.is_archived ? (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    disabled={form.processing}
-                                                    onClick={() =>
-                                                        restore(account)
-                                                    }
-                                                >
-                                                    Restore
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    disabled={form.processing}
-                                                    onClick={() =>
-                                                        archive(account)
-                                                    }
-                                                >
-                                                    Archive
-                                                </Button>
-                                            )}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-600 hover:text-red-700"
-                                                disabled={form.processing}
-                                                title={
-                                                    account.in_use
-                                                        ? 'Has transactions or scheduled payments — archive instead'
-                                                        : undefined
-                                                }
-                                                onClick={() => remove(account)}
-                                            >
-                                                Delete
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        className="text-ink-2"
+                                                        aria-label={`More for ${account.name}`}
+                                                        disabled={
+                                                            form.processing
+                                                        }
+                                                    >
+                                                        <Ellipsis />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    {account.is_archived ? (
+                                                        <DropdownMenuItem
+                                                            onSelect={() =>
+                                                                restore(account)
+                                                            }
+                                                        >
+                                                            <ArchiveRestore />
+                                                            Restore
+                                                        </DropdownMenuItem>
+                                                    ) : (
+                                                        <DropdownMenuItem
+                                                            onSelect={() =>
+                                                                archive(account)
+                                                            }
+                                                        >
+                                                            <Archive />
+                                                            Archive
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem
+                                                        variant="destructive"
+                                                        disabled={
+                                                            account.in_use
+                                                        }
+                                                        onSelect={() =>
+                                                            remove(account)
+                                                        }
+                                                    >
+                                                        <Trash2 />
+                                                        <span className="grid">
+                                                            Delete
+                                                            {account.in_use && (
+                                                                <span className="text-ink-2 text-xs">
+                                                                    Has activity
+                                                                    — archive it
+                                                                    instead
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        <div className="border-ink rule-double flex items-baseline justify-between gap-4 border-t pt-3 pr-[4.875rem] pb-2.5 pointer-coarse:pr-[5.875rem]">
+                            <span className="font-semibold">{totalLabel}</span>
+                            <Amount value={total} size="md" />
+                        </div>
+                    </>
                 )}
             </CardContent>
         </Card>
@@ -692,6 +804,7 @@ export default function AccountsIndex({ accounts }: { accounts: Account[] }) {
     const assets = accounts.filter((a) => a.kind === 'asset');
     const liabilities = accounts.filter((a) => a.kind === 'liability');
     const receivables = accounts.filter((a) => a.kind === 'receivable');
+    const activeAssets = assets.filter((a) => !a.is_archived);
 
     return (
         <AuthenticatedLayout>
@@ -700,26 +813,62 @@ export default function AccountsIndex({ accounts }: { accounts: Account[] }) {
                 title="Accounts"
                 description="Cash and savings, the debts you owe, and what people owe you."
                 actions={
-                    <AccountDialog trigger={<Button>Add account</Button>} />
+                    <AccountDialog
+                        depositAccounts={activeAssets}
+                        trigger={
+                            <Button>
+                                <Plus />
+                                Add account
+                            </Button>
+                        }
+                    />
                 }
             />
-            <div className="space-y-6">
-                <AccountTable
-                    title="Assets"
-                    description="Money you have."
-                    accounts={assets}
-                />
-                <AccountTable
-                    title="Liabilities"
-                    description="Money you owe."
-                    accounts={liabilities}
-                />
-                <AccountTable
-                    title="Money owed to me"
-                    description="Debts family and friends owe you. Counts towards your net worth."
-                    accounts={receivables}
-                />
-            </div>
+
+            {accounts.length === 0 ? (
+                <Card>
+                    <CardContent>
+                        <EmptyState
+                            title="No accounts yet"
+                            action={
+                                <AccountDialog
+                                    trigger={
+                                        <Button variant="outline">
+                                            <Plus />
+                                            Add your first account
+                                        </Button>
+                                    }
+                                />
+                            }
+                        >
+                            Start with where you keep money: a wallet, a bank
+                            account, savings. Add loans you are paying and money
+                            people owe you whenever you are ready.
+                        </EmptyState>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid gap-6">
+                    <AccountSection
+                        title="Assets"
+                        description="Money you have."
+                        totalLabel="Total assets"
+                        accounts={assets}
+                    />
+                    <AccountSection
+                        title="Liabilities"
+                        description="Money you owe."
+                        totalLabel="Total liabilities"
+                        accounts={liabilities}
+                    />
+                    <AccountSection
+                        title="Money owed to me"
+                        description="Debts family and friends owe you. Tracked beside your net worth, and counted once it's collected."
+                        totalLabel="Total owed to me"
+                        accounts={receivables}
+                    />
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

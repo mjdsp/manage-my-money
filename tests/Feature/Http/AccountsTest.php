@@ -73,6 +73,64 @@ it('requires a due day for a liability', function () {
     ])->assertSessionHasErrors('due_day_of_month');
 });
 
+it('pays a new loan into the asset account it was deposited to', function () {
+    $ledger = app(LedgerService::class);
+    $savings = Account::factory()->for($this->user)->asset()->create(['name' => 'BPI Savings']);
+
+    $this->actingAs($this->user)->post(route('accounts.store'), [
+        'name' => 'Bank Loan',
+        'kind' => 'liability',
+        'opening_balance' => '50000',
+        'due_day_of_month' => 15,
+        'deposit_account_id' => $savings->id,
+    ])->assertRedirect(route('accounts.index'));
+
+    $loan = $this->user->accounts()->where('kind', 'liability')->sole();
+    $proceeds = $this->user->transactions()->sole();
+
+    expect($ledger->balance($loan)->cents)->toBe(5_000_000)
+        ->and($ledger->balance($savings)->cents)->toBe(5_000_000);
+    expect($proceeds->type)->toBe(TransactionType::Transfer)
+        ->and($proceeds->from_account_id)->toBe($loan->id)
+        ->and($proceeds->to_account_id)->toBe($savings->id)
+        ->and($proceeds->amount->cents)->toBe(5_000_000);
+});
+
+it('refuses to deposit a loan into an account that is not one of your active assets', function (Account $account) {
+    $this->actingAs($this->user)->post(route('accounts.store'), [
+        'name' => 'Bank Loan',
+        'kind' => 'liability',
+        'opening_balance' => '50000',
+        'due_day_of_month' => 15,
+        'deposit_account_id' => $account->id,
+    ])->assertSessionHasErrors(['deposit_account_id' => 'Choose one of your asset accounts.']);
+
+    expect($this->user->accounts()->where('name', 'Bank Loan')->exists())->toBeFalse()
+        ->and($this->user->transactions()->exists())->toBeFalse();
+})->with([
+    'another user\'s asset' => fn () => Account::factory()->for(User::factory())->asset()->create(),
+    'a liability' => fn () => Account::factory()->for($this->user)->liability()->create(),
+    'an archived asset' => fn () => Account::factory()->for($this->user)->asset()->archived()->create(),
+]);
+
+it('ignores a deposit account when the new account is not a loan', function () {
+    $ledger = app(LedgerService::class);
+    $wallet = Account::factory()->for($this->user)->asset()->create(['name' => 'Wallet']);
+
+    $this->actingAs($this->user)->post(route('accounts.store'), [
+        'name' => 'BPI Savings',
+        'kind' => 'asset',
+        'opening_balance' => '1000',
+        'deposit_account_id' => $wallet->id,
+    ])->assertRedirect(route('accounts.index'));
+
+    $savings = $this->user->accounts()->where('name', 'BPI Savings')->sole();
+
+    expect($ledger->balance($savings)->cents)->toBe(100_000)
+        ->and($ledger->balance($wallet)->cents)->toBe(0)
+        ->and($this->user->transactions()->sole()->type)->toBe(TransactionType::Adjustment);
+});
+
 it('creates a receivable but keeps it out of net worth until repaid', function () {
     $ledger = app(LedgerService::class);
 

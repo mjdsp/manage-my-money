@@ -71,7 +71,15 @@ class AccountController extends Controller
             'starting_principal' => $hasPlan ? $opening : null,
         ]);
 
-        $this->ledger->recordOpeningBalance($account, $opening);
+        if (isset($data['deposit_account_id'])) {
+            $this->ledger->recordLoanProceeds(
+                $account,
+                $request->user()->accounts()->findOrFail($data['deposit_account_id']),
+                $opening,
+            );
+        } else {
+            $this->ledger->recordOpeningBalance($account, $opening);
+        }
 
         return to_route('accounts.index')->with('status', "Account “{$account->name}” created.");
     }

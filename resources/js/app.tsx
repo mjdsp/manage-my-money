@@ -20,6 +20,7 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: '#4B5563',
+        // Runs along the top of the sticky teal band.
+        color: '#FFFFFF',
     },
 });

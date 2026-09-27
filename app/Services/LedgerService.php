@@ -110,6 +110,29 @@ class LedgerService
     }
 
     /**
+     * Record a new loan's starting balance as the money it paid out: one
+     * transfer from the liability into the account that received the loan.
+     * It raises the amount owed and that account's balance by the same sum,
+     * so net worth is unchanged, and it takes the place of the opening-balance
+     * adjustment.
+     */
+    public function recordLoanProceeds(Account $loan, Account $depositAccount, Money $amount, \DateTimeInterface|string|null $date = null): ?Transaction
+    {
+        if ($amount->isZero()) {
+            return null;
+        }
+
+        return $this->post($loan->user, [
+            'type' => TransactionType::Transfer,
+            'amount' => $amount->abs(),
+            'date' => $date ?? now(),
+            'description' => 'Loan proceeds',
+            'from_account_id' => $loan->id,
+            'to_account_id' => $depositAccount->id,
+        ]);
+    }
+
+    /**
      * Cash on hand for an asset; amount still owed for a liability. Pass $asOf
      * to get the balance as it stood at the end of that day.
      */

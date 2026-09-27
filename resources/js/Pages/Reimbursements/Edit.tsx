@@ -1,50 +1,27 @@
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { peso } from '@/lib/format';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
-
-type ItemRow = { quantity: string; item_name: string; unit_price: string };
+import ItemsEditor, { blankItem, type ItemDraft } from './ItemsEditor';
 
 type EditReimbursement = {
     id: number;
     title: string;
     notes: string | null;
-    items: ItemRow[];
+    items: ItemDraft[];
 };
 
 type FormShape = {
     title: string;
     notes: string;
-    items: ItemRow[];
+    items: ItemDraft[];
 };
 
-const blankRow = (): ItemRow => ({
-    quantity: '1',
-    item_name: '',
-    unit_price: '',
-});
-
-function rowTotalCents(row: ItemRow): number {
-    const qty = parseFloat(row.quantity);
-    const price = parseFloat(row.unit_price);
-    if (!isFinite(qty) || !isFinite(price)) return 0;
-    return Math.round(qty * price * 100);
-}
-
-function isFilled(row: ItemRow): boolean {
+function isFilled(row: ItemDraft): boolean {
     return row.item_name.trim() !== '' || row.unit_price.trim() !== '';
 }
 
@@ -59,19 +36,15 @@ export default function ReimbursementEdit({
         items:
             reimbursement.items.length > 0
                 ? reimbursement.items.map((i) => ({ ...i }))
-                : [blankRow()],
+                : [blankItem()],
     });
 
     const { items } = form.data;
-    const grandTotalCents = items.reduce(
-        (sum, row) => sum + rowTotalCents(row),
-        0,
-    );
     const errorMessages = Array.from(
         new Set(Object.values(form.errors)),
     ).filter(Boolean) as string[];
 
-    function setRow(index: number, patch: Partial<ItemRow>) {
+    function setRow(index: number, patch: Partial<ItemDraft>) {
         form.setData(
             'items',
             items.map((row, i) => (i === index ? { ...row, ...patch } : row)),
@@ -79,7 +52,7 @@ export default function ReimbursementEdit({
     }
 
     function addRow() {
-        form.setData('items', [...items, blankRow()]);
+        form.setData('items', [...items, blankItem()]);
     }
 
     function removeRow(index: number) {
@@ -104,54 +77,39 @@ export default function ReimbursementEdit({
             <PageHeader
                 title="Edit reimbursement"
                 description="Change the title, notes or line items. Receipt photos are managed on the report page."
-                actions={
-                    <Button asChild variant="outline">
-                        <Link
-                            href={route(
-                                'reimbursements.show',
-                                reimbursement.id,
-                            )}
-                        >
-                            Cancel
-                        </Link>
-                    </Button>
-                }
             />
 
-            <form onSubmit={submit} className="space-y-6">
+            <form onSubmit={submit} className="grid gap-6">
                 <Card>
-                    <CardContent className="space-y-4">
-                        <div className="max-w-md space-y-1.5">
-                            <Label htmlFor="title">Report title</Label>
+                    <CardContent className="grid gap-5 md:grid-cols-2">
+                        <FormField
+                            label="Report title"
+                            error={form.errors.title}
+                        >
                             <Input
-                                id="title"
                                 value={form.data.title}
                                 onChange={(e) =>
                                     form.setData('title', e.target.value)
                                 }
                                 autoFocus
                             />
-                            {form.errors.title && (
-                                <p className="text-sm text-red-600">
-                                    {form.errors.title}
-                                </p>
-                            )}
-                        </div>
-                        <div className="max-w-md space-y-1.5">
-                            <Label htmlFor="notes">Notes (optional)</Label>
+                        </FormField>
+                        <FormField label="Notes (optional)">
                             <Input
-                                id="notes"
                                 value={form.data.notes}
                                 onChange={(e) =>
                                     form.setData('notes', e.target.value)
                                 }
                             />
-                        </div>
+                        </FormField>
                     </CardContent>
                 </Card>
 
                 {errorMessages.length > 0 && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    <div
+                        role="alert"
+                        className="border-past-due/40 bg-past-due-tint text-past-due rounded-md border px-4 py-3 text-sm"
+                    >
                         <ul className="list-inside list-disc space-y-0.5">
                             {errorMessages.map((message) => (
                                 <li key={message}>{message}</li>
@@ -161,108 +119,21 @@ export default function ReimbursementEdit({
                 )}
 
                 <Card>
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-10">#</TableHead>
-                                    <TableHead className="w-28">
-                                        Quantity
-                                    </TableHead>
-                                    <TableHead>Item name</TableHead>
-                                    <TableHead className="w-40">
-                                        Price per quantity
-                                    </TableHead>
-                                    <TableHead className="w-40 text-right">
-                                        Total amount
-                                    </TableHead>
-                                    <TableHead className="w-1" />
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {items.map((row, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="text-sm text-gray-400 tabular-nums">
-                                            {index + 1}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input
-                                                inputMode="decimal"
-                                                value={row.quantity}
-                                                onChange={(e) =>
-                                                    setRow(index, {
-                                                        quantity:
-                                                            e.target.value,
-                                                    })
-                                                }
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input
-                                                value={row.item_name}
-                                                onChange={(e) =>
-                                                    setRow(index, {
-                                                        item_name:
-                                                            e.target.value,
-                                                    })
-                                                }
-                                                placeholder="Description"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input
-                                                inputMode="decimal"
-                                                placeholder="0.00"
-                                                value={row.unit_price}
-                                                onChange={(e) =>
-                                                    setRow(index, {
-                                                        unit_price:
-                                                            e.target.value,
-                                                    })
-                                                }
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-right font-medium tabular-nums">
-                                            {peso(rowTotalCents(row))}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-gray-400 hover:text-red-600"
-                                                onClick={() => removeRow(index)}
-                                                aria-label={`Remove row ${index + 1}`}
-                                            >
-                                                ✕
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                        <div className="flex items-center justify-between border-t p-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={addRow}
-                            >
-                                Add row
-                            </Button>
-                            <div className="text-sm">
-                                <span className="text-gray-500">
-                                    Total amount
-                                </span>{' '}
-                                <span className="ml-2 text-lg font-semibold tabular-nums">
-                                    {peso(grandTotalCents)}
-                                </span>
-                            </div>
-                        </div>
+                    <CardContent>
+                        <h2 className="mb-4 text-[1.0625rem] font-semibold tracking-[-0.01em]">
+                            Items
+                        </h2>
+                        <ItemsEditor
+                            rows={items}
+                            onChange={setRow}
+                            onRemove={removeRow}
+                            onAdd={addRow}
+                            totalLabel="Total amount"
+                        />
                     </CardContent>
                 </Card>
 
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <Button asChild type="button" variant="ghost">
                         <Link
                             href={route(

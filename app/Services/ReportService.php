@@ -47,6 +47,8 @@ class ReportService
             'thisMonth' => $this->incomeExpense($user, $month),
             'lastMonth' => $this->incomeExpense($user, $lastMonth),
             'spendingByCategory' => $this->byCategory($user, $month, TransactionType::Expense),
+            'passiveIncome' => $this->interestByAccount($accounts->where('kind', AccountKind::Receivable)),
+            'interestPaid' => $this->interestByAccount($accounts->where('kind', AccountKind::Liability)),
             'upcoming' => $this->scheduled->upcoming($user)
                 ->take(10)
                 ->map(fn ($st) => [
@@ -162,6 +164,66 @@ class ReportService
             ])
             ->sortByDesc(fn ($row) => $row['amount']->cents)
             ->values();
+    }
+
+    /**
+     * Monthly interest on a set of loans, one row per account, shaped like
+     * {@see self::byCategory()} so the dashboard can chart it the same way:
+     * pass receivables for the interest you earn (passive income), liabilities
+     * for the interest you pay. Loans already settled, or with no known
+     * interest, are left out.
+     *
+     * @param  Collection<int, Account>  $loans
+     * @return Collection<int, array{name: string, amount: Money, pct: float}>
+     */
+    private function interestByAccount(Collection $loans): Collection
+    {
+        $rows = $loans
+            ->filter(fn (Account $account) => $this->payoff($account)['owed']->isPositive())
+            ->map(fn (Account $account) => [
+                'name' => $account->name,
+                'amount' => $this->monthlyInterest($account),
+            ])
+            ->filter(fn (array $row) => $row['amount']->isPositive());
+
+        $grandTotal = max(1, $rows->sum(fn (array $row) => $row['amount']->cents));
+
+        return $rows
+            ->map(fn (array $row) => [
+                ...$row,
+                'pct' => round($row['amount']->cents / $grandTotal * 100, 1),
+            ])
+            ->sortByDesc(fn (array $row) => $row['amount']->cents)
+            ->values();
+    }
+
+    /**
+     * Interest a loan carries each month on a flat / add-on plan, earned on a
+     * receivable or paid on a liability: the total interest (total to be repaid
+     * − amount lent or borrowed) spread over the term. Without a saved total
+     * and term, falls back to that amount × monthly rate.
+     */
+    private function monthlyInterest(Account $account): Money
+    {
+        $principal = $account->starting_principal;
+
+        if ($principal === null || ! $principal->isPositive()) {
+            return Money::zero();
+        }
+
+        if ($account->total_repayment?->isPositive() && $account->term_months) {
+            return Money::ofCents((int) round(
+                $account->total_repayment->minus($principal)->cents / $account->term_months
+            ));
+        }
+
+        if ($account->monthly_interest_rate !== null) {
+            return Money::ofCents((int) round(
+                $principal->cents * (float) $account->monthly_interest_rate / 100
+            ));
+        }
+
+        return Money::zero();
     }
 
     /**

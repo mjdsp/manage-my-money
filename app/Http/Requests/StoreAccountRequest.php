@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\AccountKind;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -41,6 +42,27 @@ class StoreAccountRequest extends FormRequest
             'term_months' => ['nullable', 'integer', 'between:1,600'],
             'scheduled_payment' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
             'total_repayment' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
+
+            // Liability: the asset account the borrowed money was paid into.
+            'deposit_account_id' => [
+                'exclude_unless:kind,'.AccountKind::Liability->value,
+                'nullable',
+                'integer',
+                Rule::exists('accounts', 'id')->where(fn (Builder $query) => $query
+                    ->where('user_id', $this->user()->id)
+                    ->where('kind', AccountKind::Asset->value)
+                    ->where('is_archived', false)),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'deposit_account_id.exists' => 'Choose one of your asset accounts.',
         ];
     }
 }

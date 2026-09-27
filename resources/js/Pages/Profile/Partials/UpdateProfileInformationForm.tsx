@@ -32,22 +32,22 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Profile Information
+                <h2 className="text-[1.0625rem] font-semibold tracking-[-0.01em]">
+                    Profile information
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="text-ink-2 mt-1 text-sm">
                     Update your account's profile information and email address.
                 </p>
             </header>
 
-            <form onSubmit={submit} className="mt-6 space-y-6">
+            <form onSubmit={submit} className="mt-6 space-y-5">
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
 
                     <TextInput
                         id="name"
-                        className="mt-1 block w-full"
+                        className="mt-1.5"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         required
@@ -55,7 +55,7 @@ export default function UpdateProfileInformation({
                         autoComplete="name"
                     />
 
-                    <InputError className="mt-2" message={errors.name} />
+                    <InputError className="mt-1.5" message={errors.name} />
                 </div>
 
                 <div>
@@ -64,32 +64,32 @@ export default function UpdateProfileInformation({
                     <TextInput
                         id="email"
                         type="email"
-                        className="mt-1 block w-full"
+                        className="mt-1.5"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
                         required
                         autoComplete="username"
                     />
 
-                    <InputError className="mt-2" message={errors.email} />
+                    <InputError className="mt-1.5" message={errors.email} />
                 </div>
 
                 {mustVerifyEmail && user.email_verified_at === null && (
                     <div>
-                        <p className="mt-2 text-sm text-gray-800">
+                        <p className="text-ink mt-2 text-sm">
                             Your email address is unverified.
                             <Link
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                                className="text-band ml-1 rounded-sm text-sm font-semibold underline"
                             >
                                 Click here to re-send the verification email.
                             </Link>
                         </p>
 
                         {status === 'verification-link-sent' && (
-                            <div className="mt-2 text-sm font-medium text-green-600">
+                            <div className="text-credit mt-2 text-sm font-medium">
                                 A new verification link has been sent to your
                                 email address.
                             </div>
@@ -102,12 +102,14 @@ export default function UpdateProfileInformation({
 
                     <Transition
                         show={recentlySuccessful}
-                        enter="transition ease-in-out"
+                        enter="transition-opacity duration-200 ease-out"
                         enterFrom="opacity-0"
-                        leave="transition ease-in-out"
+                        leave="transition-opacity duration-150 ease-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">Saved.</p>
+                        <p className="text-credit text-sm font-medium">
+                            Saved.
+                        </p>
                     </Transition>
                 </div>
             </form>
